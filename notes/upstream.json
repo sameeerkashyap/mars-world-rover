@@ -1,0 +1,17 @@
+{
+  "jepa-wms": {
+    "repository": "https://github.com/facebookresearch/jepa-wms",
+    "commit": "13cf1d9c7e476f53c17714d2e0f1dc239a883ce0",
+    "acquisition": "GitHub source archive; not a Git checkout"
+  },
+  "MarsExplorer-Gymnasium": {
+    "repository": "https://github.com/markub3327/MarsExplorer-Gymnasium",
+    "commit": "43c5930e0d66676e816e08458983024570b1565c",
+    "acquisition": "GitHub source archive; not a Git checkout"
+  },
+  "RLRoverLab": {
+    "repository": "https://github.com/abmoRobotics/RLRoverLab",
+    "commit": "578906ad5c3383087aeec038be82b87e05d4ee2c",
+    "acquisition": "GitHub source archive; not a Git checkout"
+  }
+}

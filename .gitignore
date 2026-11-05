@@ -1,0 +1,14 @@
+external/
+data/*
+!data/.gitkeep
+checkpoints/*
+!checkpoints/.gitkeep
+runs/*
+!runs/.gitkeep
+.venv*/
+.cache/
+__pycache__/
+*.py[cod]
+.DS_Store
+.tokensave/
+.env
