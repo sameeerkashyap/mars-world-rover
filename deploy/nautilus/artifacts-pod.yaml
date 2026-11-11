@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mars-rover-artifacts
+  namespace: razvanlab
+spec:
+  restartPolicy: Never
+  activeDeadlineSeconds: 600
+  automountServiceAccountToken: false
+  containers:
+    - name: files
+      image: alpine:3.22
+      command: [/bin/sh, -c, "sleep 600"]
+      resources:
+        requests: {cpu: "1", memory: 2Gi, ephemeral-storage: 64Mi}
+        limits: {cpu: "1", memory: 2Gi, ephemeral-storage: 64Mi}
+      volumeMounts:
+        - {name: data, mountPath: /data, readOnly: true}
+  volumes:
+    - name: data
+      persistentVolumeClaim:
+        claimName: mars-world-data
+        readOnly: true

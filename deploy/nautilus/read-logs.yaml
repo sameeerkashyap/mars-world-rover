@@ -1,0 +1,43 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mars-rover-read-logs
+  namespace: razvanlab
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 600
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      containers:
+        - name: logs
+          image: alpine:3.22
+          command: [/bin/sh, -ec]
+          args:
+            - |
+              for log in /data/runs/setup/mars-rover-smoke-n858s/install.log /data/runs/rover/mars-rover-smoke-n858s/console.log; do
+                printf '\n%s\n' "$log"
+                if [ -f "$log" ]; then
+                  tail -n 150 "$log"
+                else
+                  echo 'Log file not found on this PVC.'
+                fi
+              done
+              echo 'Available log files:'
+              if [ -d /data/runs ]; then
+                find /data/runs -maxdepth 4 -type f -name '*.log'
+              else
+                echo '/data/runs does not exist on this PVC.'
+              fi
+          resources:
+            requests: {cpu: "1", memory: 128Mi, ephemeral-storage: 64Mi}
+            limits: {cpu: "1", memory: 128Mi, ephemeral-storage: 64Mi}
+          volumeMounts:
+            - {name: data, mountPath: /data, readOnly: true}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: mars-world-data
+            readOnly: true

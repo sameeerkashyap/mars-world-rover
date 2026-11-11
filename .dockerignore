@@ -1,0 +1,13 @@
+.git
+.tokensave
+.venv*
+.cache
+data
+checkpoints
+runs
+**/__pycache__
+**/.git
+**/macros.py
+.env
+**/.env
+external

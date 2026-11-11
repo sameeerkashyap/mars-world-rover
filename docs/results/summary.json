@@ -1,0 +1,10 @@
+{
+  "task": "AAURoverEnvSimple-v0",
+  "steps": 120,
+  "frames": 0,
+  "simulation_seconds": 24.0,
+  "seed": 0,
+  "controller": "Scripted forward command; no learned policy or world model",
+  "resets": 0,
+  "capture_mode": "position_trace"
+}
