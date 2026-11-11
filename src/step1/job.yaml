@@ -1,0 +1,107 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: razvanlab
+  name: mars-jepa-step1
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      containers:
+      - name: jepa
+        image: docker.io/samkash/mars-runtime:uv7
+        command: [/bin/bash, /opt/step1/run.sh]
+        env:
+        - name: NVIDIA_DRIVER_CAPABILITIES
+          value: compute,utility,graphics
+        - name: WANDB_MODE
+          value: offline
+        - name: OMP_NUM_THREADS
+          value: '1'
+        - name: OPENBLAS_NUM_THREADS
+          value: '1'
+        - name: D4RL_SUPPRESS_IMPORT_ERROR
+          value: '1'
+        - name: D4RL_DATASET_DIR
+          value: /data/datasets/d4rl
+        # Auth for the gated HuggingFace dataset `facebook/jepa-wms` (pointmaze).
+        # Secret is upserted from the local .env by deploy.sh.
+        - name: HF_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: hf-token
+              key: HF_TOKEN
+        resources:
+          requests:
+            cpu: '4'
+            memory: 16Gi
+            ephemeral-storage: 40Gi
+            nvidia.com/gpu: '1'
+          limits:
+            cpu: '4'
+            memory: 16Gi
+            ephemeral-storage: 40Gi
+            nvidia.com/gpu: '1'
+        volumeMounts:
+        - name: source
+          mountPath: /opt/step1
+          readOnly: true
+        - name: source
+          mountPath: /opt/upstream.json
+          subPath: upstream.json
+          readOnly: true
+        - name: data
+          mountPath: /data
+        - name: runtime
+          mountPath: /runtime
+        - name: shm
+          mountPath: /dev/shm
+        - name: scratch
+          mountPath: /tmp
+      initContainers:
+      - name: setup
+        image: docker.io/samkash/mars-runtime:uv7
+        command: [/bin/bash, /opt/step1/runtime-setup.sh]
+        args: [jepa]
+        resources:
+          requests:
+            cpu: '4'
+            memory: 8Gi
+            ephemeral-storage: 40Gi
+          limits:
+            cpu: '4'
+            memory: 8Gi
+            ephemeral-storage: 40Gi
+        volumeMounts:
+        - name: source
+          mountPath: /opt/step1
+          readOnly: true
+        - name: source
+          mountPath: /opt/upstream.json
+          subPath: upstream.json
+          readOnly: true
+        - name: data
+          mountPath: /data
+        - name: runtime
+          mountPath: /runtime
+      volumes:
+      - name: source
+        configMap:
+          name: mars-jepa-step1-source
+      - name: data
+        persistentVolumeClaim:
+          claimName: mars-world-data
+      - name: runtime
+        emptyDir:
+          sizeLimit: 35Gi
+      - name: shm
+        emptyDir:
+          medium: Memory
+          sizeLimit: 2Gi
+      - name: scratch
+        emptyDir:
+          sizeLimit: 5Gi

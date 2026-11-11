@@ -1,0 +1,34 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../nautilus
+patches:
+  - target:
+      kind: Job
+      name: mars-rover-smoke
+    patch: |-
+      - op: remove
+        path: /spec/template/spec/containers/0/resources/requests/nvidia.com~1gpu
+      - op: remove
+        path: /spec/template/spec/containers/0/resources/limits/nvidia.com~1gpu
+      - op: add
+        path: /spec/template/spec/containers/0/resources/requests/nvidia.com~1a40
+        value: "1"
+      - op: add
+        path: /spec/template/spec/containers/0/resources/limits/nvidia.com~1a40
+        value: "1"
+      - op: replace
+        path: /spec/template/spec/affinity/nodeAffinity/requiredDuringSchedulingIgnoredDuringExecution/nodeSelectorTerms/0/matchExpressions/0/values
+        value: [NVIDIA-A40]
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/cpu
+        value: "1"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/limits/cpu
+        value: "1"
+      - op: replace
+        path: /spec/template/spec/initContainers/0/resources/requests/cpu
+        value: "1"
+      - op: replace
+        path: /spec/template/spec/initContainers/0/resources/limits/cpu
+        value: "1"

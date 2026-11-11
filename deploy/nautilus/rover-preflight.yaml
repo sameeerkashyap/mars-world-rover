@@ -1,0 +1,35 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mars-rover-preflight
+  namespace: razvanlab
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 14400
+  template:
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      containers:
+        - name: preflight
+          image: docker.io/samkash/mars-runtime:uv3
+          command: [/bin/bash, /opt/cluster/preflight-run.sh]
+          args: [rover]
+          env:
+            - {name: ACCEPT_EULA, value: "Y"}
+            - {name: OMNI_KIT_ACCEPT_EULA, value: "YES"}
+            - {name: OMNI_KIT_ALLOW_ROOT, value: "1"}
+          terminationMessagePolicy: FallbackToLogsOnError
+          resources:
+            requests: {cpu: "4", memory: 8Gi, ephemeral-storage: 100Gi}
+            limits: {cpu: "4", memory: 8Gi, ephemeral-storage: 100Gi}
+          volumeMounts:
+            - {name: data, mountPath: /data}
+            - {name: runtime, mountPath: /runtime}
+      volumes:
+        - name: data
+          persistentVolumeClaim: {claimName: mars-world-data}
+        - name: runtime
+          emptyDir: {sizeLimit: 90Gi}

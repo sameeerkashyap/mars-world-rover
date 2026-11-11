@@ -4,6 +4,11 @@
     "commit": "13cf1d9c7e476f53c17714d2e0f1dc239a883ce0",
     "acquisition": "GitHub source archive; not a Git checkout"
   },
+  "metaworld": {
+    "repository": "https://github.com/Farama-Foundation/Metaworld",
+    "commit": "cdafedfaaa896472fb7e76e2fe103e120b67a9b6",
+    "acquisition": "jepa-wms transitive dependency; upstream pins branch `master`, which Farama renamed to `main`. We override the source to the `v3.0.0` tag commit: it requires Python >=3.10 (matching jepa-wms's >=3.10,<3.11), whereas current `main` (metaworld 3.1.1) requires >=3.11 and cannot install in this environment."
+  },
   "MarsExplorer-Gymnasium": {
     "repository": "https://github.com/markub3327/MarsExplorer-Gymnasium",
     "commit": "43c5930e0d66676e816e08458983024570b1565c",

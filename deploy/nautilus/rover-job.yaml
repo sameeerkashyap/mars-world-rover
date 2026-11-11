@@ -1,0 +1,128 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: razvanlab
+  name: mars-rover-smoke
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 14400
+  template:
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: nvidia.com/gpu.product
+                operator: In
+                values:
+                - NVIDIA-GeForce-RTX-3090
+                - NVIDIA-GeForce-RTX-3090-Ti
+                - NVIDIA-GeForce-RTX-4080
+                - NVIDIA-GeForce-RTX-4080-SUPER
+                - NVIDIA-GeForce-RTX-4090
+                - NVIDIA-RTX-A4000
+                - NVIDIA-RTX-A4500
+                - NVIDIA-RTX-A5000
+                - NVIDIA-RTX-5000-Ada-Generation
+                - NVIDIA-RTX-6000-Ada-Generation
+                - NVIDIA-Quadro-RTX-5000
+                - NVIDIA-Quadro-RTX-6000
+                - NVIDIA-TITAN-RTX
+                - NVIDIA-A10
+                - NVIDIA-A10G
+                - NVIDIA-L4
+                - NVIDIA-L40
+                - NVIDIA-L40S
+      containers:
+      - name: rover
+        image: docker.io/samkash/mars-runtime:uv4
+        args:
+        - examples/01_demos/01_zero_agent.py
+        - --task
+        - AAURoverEnvSimple-v0
+        - --num_envs
+        - '1'
+        - --steps
+        - '120'
+        - --viz
+        - none
+        env:
+        - name: ACCEPT_EULA
+          value: "Y"
+        - name: OMNI_KIT_ACCEPT_EULA
+          value: "YES"
+        - name: OMNI_KIT_ALLOW_ROOT
+          value: '1'
+        - name: NVIDIA_DRIVER_CAPABILITIES
+          value: compute,utility,graphics
+        - name: WANDB_MODE
+          value: offline
+        resources:
+          requests:
+            cpu: '4'
+            memory: 16Gi
+            ephemeral-storage: 100Gi
+            nvidia.com/gpu: '1'
+          limits:
+            cpu: '4'
+            memory: 16Gi
+            ephemeral-storage: 100Gi
+            nvidia.com/gpu: '1'
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: runtime
+          mountPath: /runtime
+        - name: shm
+          mountPath: /dev/shm
+        - name: scratch
+          mountPath: /tmp
+        command:
+        - /bin/bash
+        - /opt/cluster/rover-run.sh
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: mars-world-data
+      - name: runtime
+        emptyDir:
+          sizeLimit: 90Gi
+      - name: shm
+        emptyDir:
+          medium: Memory
+          sizeLimit: 2Gi
+      - name: scratch
+        emptyDir:
+          sizeLimit: 5Gi
+      initContainers:
+      - name: setup
+        image: docker.io/samkash/mars-runtime:uv4
+        command:
+        - /bin/bash
+        - /opt/cluster/runtime-setup.sh
+        args:
+        - rover
+        resources:
+          requests:
+            cpu: '4'
+            memory: 8Gi
+            ephemeral-storage: 100Gi
+          limits:
+            cpu: '4'
+            memory: 8Gi
+            ephemeral-storage: 100Gi
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: runtime
+          mountPath: /runtime
+        env:
+        - name: ACCEPT_EULA
+          value: "Y"
+        - name: OMNI_KIT_ACCEPT_EULA
+          value: "YES"

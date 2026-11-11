@@ -1,0 +1,67 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: razvanlab
+  name: mars-jepa-data
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 14400
+  ttlSecondsAfterFinished: 86400
+  template:
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      containers:
+      - name: download
+        image: docker.io/samkash/mars-runtime:uv3
+        command:
+        - /bin/bash
+        - -euc
+        args:
+        - cd /runtime/jepa-wms; mkdir -p "$JEPAWM_DSET"; python src/scripts/download_data.py
+          --dataset pointmaze
+        resources:
+          requests:
+            cpu: '1'
+            memory: 2Gi
+            ephemeral-storage: 5Gi
+          limits:
+            cpu: '1'
+            memory: 2Gi
+            ephemeral-storage: 5Gi
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: runtime
+          mountPath: /runtime
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: mars-world-data
+      - name: runtime
+        emptyDir:
+          sizeLimit: 4Gi
+      initContainers:
+      - name: setup
+        image: docker.io/samkash/mars-runtime:uv3
+        command:
+        - /bin/bash
+        - /opt/cluster/runtime-setup.sh
+        args:
+        - data
+        resources:
+          requests:
+            cpu: '1'
+            memory: 2Gi
+            ephemeral-storage: 5Gi
+          limits:
+            cpu: '1'
+            memory: 2Gi
+            ephemeral-storage: 5Gi
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: runtime
+          mountPath: /runtime

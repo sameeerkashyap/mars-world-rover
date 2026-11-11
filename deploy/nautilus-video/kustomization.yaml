@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../nautilus-a40
+nameSuffix: -video
+images:
+  - name: docker.io/samkash/mars-runtime
+    newTag: uv7
+patches:
+  - target:
+      kind: Job
+      name: mars-rover-smoke
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/args
+        value: [/opt/cluster/rover_record.py, --task, AAURoverEnvSimple-v0, --num_envs, "1", --steps, "120", --no-video]

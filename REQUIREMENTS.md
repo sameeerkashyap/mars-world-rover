@@ -4,6 +4,12 @@ Source: [Project bootstrap](MarsRover_WM_BOOTSTRAP.md).
 
 ## Active hardware decision
 
+The remote execution target is now **NRP Nautilus Kubernetes**. See
+[the deployment guide](deploy/nautilus/README.md). Run RLRoverLab headlessly on
+compatible RTX nodes and JEPA in a separate CUDA image/Job. Their independent
+acceptance gates still apply; deployment files alone do not establish a working
+simulation or planning result. The CPU prototype below remains the local fallback.
+
 The developer has no NVIDIA GPU. Use CPU-only **MarsExplorer-Gymnasium** for
 the initial environment and trajectory-collection prototype. Defer
 RLRoverLab/Isaac and its GPU requirements. Keep JEPA-WMs reproduction separate;

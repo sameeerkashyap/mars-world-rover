@@ -1,0 +1,8 @@
+{
+  "steps": 120,
+  "simulation_seconds": 24.0,
+  "recorded_horizontal_path_m": 14.467581570060958,
+  "net_horizontal_displacement_m": 14.438321628535897,
+  "resets": 0,
+  "visualization": "Top-down replay of simulator positions; not RGB camera footage"
+}
