@@ -249,6 +249,39 @@ Outputs survive pod deletion:
 
 The initial rover demo does not save a training trajectory or connect to JEPA.
 Keep both independent reference checks before developing the rover data adapter.
+To record a first action/state dataset, apply the separate finite RTX A6000 job after
+`mars-world-data` exists:
+
+```bash
+rtk proxy kubectl --context nautilus -n razvanlab apply --dry-run=server -k deploy/nautilus-training
+rtk proxy kubectl --context nautilus -n razvanlab apply -k deploy/nautilus-training
+rtk proxy kubectl --context nautilus -n razvanlab wait --for=condition=complete --timeout=14400s job/mars-rover-training-data
+rtk proxy kubectl --context nautilus -n razvanlab logs job/mars-rover-training-data -c rover
+```
+
+The 600-step run uses RLRoverLab's recorder manager to save HDF5 episodes with
+policy observations, applied Ackermann velocity/turn commands, rewards, and
+terminal/timeout flags. Commands vary every ten steps within 0.2–0.7 m/s and
+±0.35 rad/s. Output goes to `/data/datasets/rover/<pod>/rover_seed_0.hdf5`; the
+pod-specific directory prevents a retry from replacing an earlier dataset.
+The current simple task records proprioceptive/height-scan policy observations,
+not camera frames. This is a starter dataset, not broad terrain coverage.
+
+To collect the next six runs, apply the same kustomization. The indexed
+`mars-rover-variation` Job records 900 steps for seeds 1, 2, and 3 on both `mars`
+and `debug`. It runs at most two pods at once. Each pod saves an HDF5 file and
+`metadata.json` in its own directory under `/data/datasets/rover/`. The new
+commands cycle through forward, reverse, turn-in-place, and pause intervals,
+with random speed and turn values in the moving intervals. The job uses the
+same recorder ConfigMap and does not replace the first seed-0 file. Check all
+six completion indexes before using the dataset; reserve `debug` for a held-out
+terrain check.
+
+```bash
+rtk proxy kubectl --context nautilus -n razvanlab get job mars-rover-variation
+rtk proxy kubectl --context nautilus -n razvanlab get pods -l job-name=mars-rover-variation
+```
+
 For bounded upstream RL training, change the rover application arguments to:
 
 ```yaml

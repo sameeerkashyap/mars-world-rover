@@ -4,10 +4,10 @@ Run the checkpoint check, download PointMaze data, read one complete sample,
 and run two planning episodes with seed 0. This checks the pipeline. It does
 not train a rover model or reproduce the full paper benchmark.
 
-Current status: the first Nautilus run failed during dependency setup because
-the upstream Metaworld `master` branch is missing. See
-[results and the setup blocker](../../docs/results.md#reference-planning)
-before retrying. No reference planning metrics are available yet.
+Current status: the first Nautilus run failed during dependency setup. The
+runtime installer now overrides the missing Metaworld branch and the incompatible
+`datasets` version. The repaired deployment passes server-side validation; a new
+full run is still needed. See [results](../../docs/results.md#reference-planning).
 
 From the repository root:
 

@@ -1,0 +1,73 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: razvanlab
+  name: mars-rover-training-data
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 14400
+  template:
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: nvidia.com/gpu.product
+                operator: In
+                values: [NVIDIA-RTX-A6000]
+      containers:
+      - name: rover
+        image: docker.io/samkash/mars-runtime:uv4
+        args:
+        - /opt/rover-recorder/rover_record_dataset.py
+        - --task
+        - AAURoverEnvSimple-v0
+        - --steps
+        - '600'
+        - --seed
+        - '0'
+        - --output
+        - /data/datasets/rover
+        env:
+        - {name: ACCEPT_EULA, value: "Y"}
+        - {name: OMNI_KIT_ACCEPT_EULA, value: "YES"}
+        - {name: OMNI_KIT_ALLOW_ROOT, value: '1'}
+        - name: NVIDIA_DRIVER_CAPABILITIES
+          value: "compute,utility,graphics"
+        - {name: WANDB_MODE, value: offline}
+        resources:
+          requests: {cpu: '1', memory: 16Gi, ephemeral-storage: 100Gi, nvidia.com/rtxa6000: '1'}
+          limits: {cpu: '1', memory: 16Gi, ephemeral-storage: 100Gi, nvidia.com/rtxa6000: '1'}
+        volumeMounts:
+        - {name: data, mountPath: /data}
+        - {name: runtime, mountPath: /runtime}
+        - {name: shm, mountPath: /dev/shm}
+        - {name: scratch, mountPath: /tmp}
+        - {name: recorder, mountPath: /opt/rover-recorder, readOnly: true}
+        command: [/bin/bash, /opt/cluster/rover-run.sh]
+      volumes:
+      - {name: data, persistentVolumeClaim: {claimName: mars-world-data}}
+      - {name: runtime, emptyDir: {sizeLimit: 90Gi}}
+      - {name: shm, emptyDir: {medium: Memory, sizeLimit: 2Gi}}
+      - {name: scratch, emptyDir: {sizeLimit: 5Gi}}
+      - name: recorder
+        configMap: {name: mars-rover-recorder}
+      initContainers:
+      - name: setup
+        image: docker.io/samkash/mars-runtime:uv4
+        command: [/bin/bash, /opt/cluster/runtime-setup.sh]
+        args: [rover]
+        resources:
+          requests: {cpu: '1', memory: 8Gi, ephemeral-storage: 100Gi}
+          limits: {cpu: '1', memory: 8Gi, ephemeral-storage: 100Gi}
+        volumeMounts:
+        - {name: data, mountPath: /data}
+        - {name: runtime, mountPath: /runtime}
+        env:
+        - {name: ACCEPT_EULA, value: "Y"}
+        - {name: OMNI_KIT_ACCEPT_EULA, value: "YES"}

@@ -73,15 +73,19 @@ class NautilusTests(unittest.TestCase):
             self.assertIn({"name": "OMNI_KIT_ACCEPT_EULA", "value": "YES"}, item["env"])
         self.assertNotIn("tolerations", pod)
 
-    def test_jobs_are_finite_and_preserve_results(self):
-        for path in DEPLOY.glob("*-job.yaml"):
+    def test_jobs_preserve_results_and_resource_limits(self):
+        paths = (list(DEPLOY.glob("*-job.yaml"))
+                 + list((ROOT / "deploy/nautilus-navigation").glob("*job.yaml"))
+                 + list((ROOT / "deploy/nautilus-jepa-rover").glob("*job.yaml")))
+        for path in paths:
             with self.subTest(path=path.name):
                 job = yaml.safe_load(path.read_text())
                 # Kubernetes' YAML parser also treats bare Y/N as booleans.
                 self.assertNotRegex(path.read_text(), r"(?m)^\s*value: (?:Y|N|yes|no|on|off)$")
                 self.assertEqual(job["kind"], "Job")
                 self.assertEqual(job["metadata"]["namespace"], "razvanlab")
-                self.assertGreater(job["spec"]["activeDeadlineSeconds"], 0)
+                if path.parent.name == "nautilus-jepa-rover":
+                    self.assertNotIn("activeDeadlineSeconds", job["spec"])
                 pod = job["spec"]["template"]["spec"]
                 self.assertEqual(pod["restartPolicy"], "Never")
                 self.assertFalse(pod["automountServiceAccountToken"])
@@ -107,6 +111,11 @@ class NautilusTests(unittest.TestCase):
                 runtime = next(v for v in pod["volumes"] if v["name"] == "runtime")
                 self.assertIn("emptyDir", runtime)
                 self.assertNotIn("medium", runtime["emptyDir"])
+
+    def test_rover_jepa_workloads_have_no_elapsed_time_cutoff(self):
+        folder = ROOT / "deploy/nautilus-jepa-rover"
+        for name in ("train.sh", "collect.sh", "evaluate.sh"):
+            self.assertNotIn("timeout ", (folder / name).read_text())
 
     def test_stacks_install_separately_and_data_download_is_lightweight(self):
         for name, mode in (("rover-job.yaml", "rover"), ("jepa-job.yaml", "jepa"),

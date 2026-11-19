@@ -1,0 +1,129 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: razvanlab
+  name: mars-rover-jepa-train-v12
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      containers:
+      - name: trainer
+        image: docker.io/samkash/mars-runtime:uv4
+        args: [--learning-rate, '0.00003', --rollout-steps, '5']
+        env:
+        - name: ACCEPT_EULA
+          value: 'Y'
+        - name: OMNI_KIT_ACCEPT_EULA
+          value: 'YES'
+        - name: OMNI_KIT_ALLOW_ROOT
+          value: '1'
+        - name: NVIDIA_DRIVER_CAPABILITIES
+          value: compute,utility,graphics
+        - name: WANDB_MODE
+          value: offline
+        resources:
+          requests:
+            cpu: '2'
+            memory: 16Gi
+            ephemeral-storage: 30Gi
+            nvidia.com/gpu: '1'
+          limits:
+            cpu: '2'
+            memory: 16Gi
+            ephemeral-storage: 30Gi
+            nvidia.com/gpu: '1'
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: runtime
+          mountPath: /runtime
+        - name: shm
+          mountPath: /dev/shm
+        - name: scratch
+          mountPath: /tmp
+        - &id001
+          name: source
+          mountPath: /opt/train
+          readOnly: true
+        - &id002
+          name: source
+          mountPath: /opt/upstream.json
+          subPath: upstream.json
+          readOnly: true
+        command:
+        - /bin/bash
+        - /opt/train/train.sh
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: mars-world-data
+      - name: runtime
+        emptyDir:
+          sizeLimit: 25Gi
+      - name: shm
+        emptyDir:
+          medium: Memory
+          sizeLimit: 2Gi
+      - name: scratch
+        emptyDir:
+          sizeLimit: 5Gi
+      - name: source
+        configMap:
+          name: mars-rover-jepa-train-v12-source
+          items:
+          - key: setup.sh
+            path: setup.sh
+          - key: train.sh
+            path: train.sh
+          - key: prepare_split.py
+            path: prepare_split.py
+          - key: meta_vit.py
+            path: meta_vit.py
+          - key: train_rover_jepa.py
+            path: scripts/train_rover_jepa.py
+          - key: train_rover_baseline.py
+            path: scripts/train_rover_baseline.py
+          - key: upstream.json
+            path: upstream.json
+      initContainers:
+      - name: setup
+        image: docker.io/samkash/mars-runtime:uv4
+        command:
+        - /bin/bash
+        - /opt/train/setup.sh
+        args: []
+        resources:
+          requests:
+            cpu: '2'
+            memory: 8Gi
+            ephemeral-storage: 30Gi
+          limits:
+            cpu: '2'
+            memory: 8Gi
+            ephemeral-storage: 30Gi
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: runtime
+          mountPath: /runtime
+        - *id001
+        - *id002
+        env:
+        - name: ACCEPT_EULA
+          value: 'Y'
+        - name: OMNI_KIT_ACCEPT_EULA
+          value: 'YES'
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: nvidia.com/gpu.compute.major
+                operator: Gt
+                values:
+                - '6'
