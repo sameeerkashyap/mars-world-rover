@@ -15,6 +15,21 @@ simulation dependencies.
 | MarsExplorer | Optional local 2D prototype | Recorder exists; local runtime remains unverified |
 | Shared storage | Keep data, weights, logs, and results | Nautilus `mars-world-data` volume |
 
+## Repository layout
+
+```text
+scripts/                    Reference checks, data tools, training, and planning
+deploy/nautilus-reference/   Reference job, launcher, run sequence, and guide
+deploy/nautilus-*/           Other Nautilus workloads and their setup
+tests/                      Checks for script and deployment interfaces
+external/                   Pinned upstream model and simulator code
+```
+
+Run local Python tools from `scripts/`. Keep cluster configuration and shell
+launchers in the matching `deploy/` folder. The reference launcher's interface
+is `bash deploy/nautilus-reference/deploy.sh`. It mounts the Python scripts
+without rebuilding the image. There is no local model package in `src/`.
+
 ## Planned model pipeline
 
 ```mermaid

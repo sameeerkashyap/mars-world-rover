@@ -67,7 +67,7 @@ available from this run.
 The configured evaluation uses two episodes, seed 0, three planning iterations,
 and 32 candidate action sequences per iteration. Optional decoder heads are
 disabled. This is a small functional check; it is not the full paper benchmark.
-See the [Step 1 guide](../src/step1/README.md) for expected outputs.
+See the [Step 1 guide](../deploy/nautilus-reference/README.md) for expected outputs.
 
 ## Local validation
 

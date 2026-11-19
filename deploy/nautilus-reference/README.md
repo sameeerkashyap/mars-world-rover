@@ -12,7 +12,7 @@ before retrying. No reference planning metrics are available yet.
 From the repository root:
 
 ```bash
-rtk proxy bash src/step1/deploy.sh
+rtk proxy bash deploy/nautilus-reference/deploy.sh
 rtk kubectl --context nautilus -n razvanlab get pods -l job-name=mars-jepa-step1
 rtk kubectl --context nautilus -n razvanlab logs -f job/mars-jepa-step1 -c setup
 rtk kubectl --context nautilus -n razvanlab logs -f job/mars-jepa-step1 -c jepa
@@ -25,7 +25,7 @@ It refuses to replace an existing job. Review a finished job before deleting
 it and running the script again. Never delete the shared storage to retry.
 
 The job requests one CUDA GPU, four CPUs, 16 GiB RAM, and 40 GiB temporary disk.
-It stops after four hours and has no automatic retries. Setup installs JEPA,
+It has no elapsed-time cutoff and no automatic retries. Setup installs JEPA,
 FFmpeg 7, and legacy MuJoCo 2.1 in a temporary Python 3.10 environment.
 
 Outputs persist in `/data/runs/jepa/<pod-name>/`:
