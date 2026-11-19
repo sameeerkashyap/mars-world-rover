@@ -1,0 +1,11 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - rover-training-job.yaml
+  - rover-variation-job.yaml
+configMapGenerator:
+  - name: mars-rover-recorder
+    files:
+      - rover_record_dataset.py
+generatorOptions:
+  disableNameSuffixHash: true

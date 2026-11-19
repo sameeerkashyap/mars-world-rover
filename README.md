@@ -18,8 +18,11 @@ models. A world model predicts how an environment changes when an agent takes
 an action. This project brings together **JEPA-WMs**, which predicts in a learned
 feature space, and **RLRoverLab**, which simulates rover motion in Isaac Sim.
 
-The project is at the simulator and reference-evaluation stage. A scripted rover
-run works on NRP Nautilus. Rover world-model training is the next development phase.
+The project has scripted rover motion, recorded training data, and a small
+predictor trained on local CPU from Nautilus recordings. The learned-model
+planner reached native goals in Isaac Sim on both debug and Mars terrain.
+The scan-aware planner reached four of six goals with no collisions on both
+the original cases and six fresh cases. Two cases in each set still timed out.
 
 ## Goal
 
@@ -42,14 +45,19 @@ Terrain + rover observations + commands
 | :--- | :--- |
 | Headless rover simulation | **120 steps** on an NVIDIA A40; exit code 0 |
 | Recorded motion | **24 s** simulated time · **14.47 m** horizontal path · **0 resets** |
-| Reference JEPA planning | Deployed; setup blocked by an upstream Metaworld branch reference |
-| Rover world-model training | Not started |
+| Rover training data | **24,000 raw rows** across original and new recordings; 6,000 new rows reserved for final testing; RGB not recorded |
+| Reference JEPA planning | Deployment repaired and validated; full rerun still needed |
+| Rover world-model training | Goal-motion model beats copying at one and five steps on held-out recordings |
+| Rover JEPA training | Meta DINO-WM rover predictor passed development and pooled reserved-test checks; final feature error 10.8% / 19.9% below copying at 1 / 5 seconds; 18,000 new rows collected |
+| Closed-loop rover navigation | **4/6 native goals reached**, versus **2/6** for the original planner and **0/6** for forward motion, on each of two six-case sets; no scan-aware collisions |
 
 <p align="center">
   <img src="docs/assets/rover-trajectory.png" alt="Recorded rover path from the 120-step simulator run" width="640">
 </p>
 
-The motion result uses a scripted forward command. The plot shows measured
+The first motion result uses a scripted forward command. The later
+[closed-loop evaluation](docs/results.md#scan-aware-navigation) uses the
+trained model to choose commands. The plot shows measured
 simulator positions. RGB camera capture is still unverified. See
 [results and evidence](docs/results.md) for the run details and current limits.
 
@@ -59,14 +67,15 @@ With Nautilus access, the published runtime image, and the existing shared
 storage configured:
 
 ```bash
-rtk proxy bash src/step1/deploy.sh
+rtk proxy bash deploy/nautilus-reference/deploy.sh
 rtk kubectl --context nautilus -n razvanlab logs -f job/mars-jepa-step1 -c setup
 ```
 
 The job checks checkpoint loading, inspects a PointMaze sample, and runs two
 planning episodes. **The current run failed during dependency setup.** Follow the
-[Step 1 guide](src/step1/README.md) and [status notes](docs/results.md#reference-planning)
-before retrying. The deploy script protects an existing job from replacement.
+[Step 1 guide](deploy/nautilus-reference/README.md) and [status notes](docs/results.md#reference-planning)
+before retrying. The installer now overrides the failing dependencies. A full rerun is still
+needed. The deploy script protects an existing job from replacement.
 
 For the rover simulator and the local CPU prototype, see
 [getting started](docs/getting-started.md).
@@ -74,10 +83,9 @@ For the rover simulator and the local CPU prototype, see
 ## Project map
 
 ```text
-src/step1/     Reference JEPA evaluation and deployment
 deploy/       Nautilus jobs, simulator recording, and runtime setup
 docker/       Shared runtime image and preflight checks
-scripts/      Local setup checks and CPU trajectory recorder
+scripts/      Reference checks, recording, training, and planning
 tests/        Deployment and recording checks
 docs/         Guides, results, roadmap, and illustrations
 notes/        Run history and upstream revision pins

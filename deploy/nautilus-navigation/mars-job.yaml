@@ -1,0 +1,137 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: razvanlab
+  name: mars-rover-navigation-mars-v4
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 14400
+  template:
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: nvidia.com/gpu.product
+                operator: In
+                values:
+                - NVIDIA-RTX-A6000
+      containers:
+      - name: rover
+        image: docker.io/samkash/mars-runtime:uv4
+        args:
+        - --terrain
+        - mars
+        - --seeds
+        - '7'
+        - '8'
+        - '9'
+        env:
+        - name: ACCEPT_EULA
+          value: 'Y'
+        - name: OMNI_KIT_ACCEPT_EULA
+          value: 'YES'
+        - name: OMNI_KIT_ALLOW_ROOT
+          value: '1'
+        - name: NVIDIA_DRIVER_CAPABILITIES
+          value: compute,utility,graphics
+        - name: WANDB_MODE
+          value: offline
+        resources:
+          requests:
+            cpu: '1'
+            memory: 16Gi
+            ephemeral-storage: 100Gi
+            nvidia.com/rtxa6000: '1'
+          limits:
+            cpu: '1'
+            memory: 16Gi
+            ephemeral-storage: 100Gi
+            nvidia.com/rtxa6000: '1'
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: runtime
+          mountPath: /runtime
+        - name: shm
+          mountPath: /dev/shm
+        - name: scratch
+          mountPath: /tmp
+        - &id001
+          name: source
+          mountPath: /opt/navigation
+          readOnly: true
+        - &id002
+          name: source
+          mountPath: /opt/upstream.json
+          subPath: upstream.json
+          readOnly: true
+        command:
+        - /bin/bash
+        - /opt/navigation/run.sh
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: mars-world-data
+      - name: runtime
+        emptyDir:
+          sizeLimit: 90Gi
+      - name: shm
+        emptyDir:
+          medium: Memory
+          sizeLimit: 2Gi
+      - name: scratch
+        emptyDir:
+          sizeLimit: 5Gi
+      - name: source
+        configMap:
+          name: mars-rover-navigation-v4-source
+          items:
+          - key: rover_navigate.py
+            path: rover_navigate.py
+          - key: rover_plan.py
+            path: scripts/rover_plan.py
+          - key: train_rover_baseline.py
+            path: scripts/train_rover_baseline.py
+          - key: model.pt
+            path: model.pt
+          - key: runtime-setup.sh
+            path: runtime-setup.sh
+          - key: run.sh
+            path: run.sh
+          - key: upstream.json
+            path: upstream.json
+      initContainers:
+      - name: setup
+        image: docker.io/samkash/mars-runtime:uv4
+        command:
+        - /bin/bash
+        - /opt/navigation/runtime-setup.sh
+        args:
+        - rover
+        resources:
+          requests:
+            cpu: '1'
+            memory: 8Gi
+            ephemeral-storage: 100Gi
+          limits:
+            cpu: '1'
+            memory: 8Gi
+            ephemeral-storage: 100Gi
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: runtime
+          mountPath: /runtime
+        - *id001
+        - *id002
+        env:
+        - name: ACCEPT_EULA
+          value: 'Y'
+        - name: OMNI_KIT_ACCEPT_EULA
+          value: 'YES'

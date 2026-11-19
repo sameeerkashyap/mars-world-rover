@@ -10,17 +10,41 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 DEPLOY = ROOT / "deploy/nautilus"
-spec = importlib.util.spec_from_file_location("jepa_plan", ROOT / "src/step1/jepa_plan.py")
+spec = importlib.util.spec_from_file_location("jepa_plan", ROOT / "scripts/jepa_plan.py")
 plan = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(plan)
 
 
 class NautilusTests(unittest.TestCase):
+    def test_reference_deploy_resolves_files_outside_repository(self):
+        with tempfile.TemporaryDirectory() as directory:
+            proxy = Path(directory) / "rtk"
+            calls = Path(directory) / "calls"
+            proxy.write_text('#!/bin/sh\nprintf "%s\\n" "$@" >> "$TEST_DEPLOY_CALLS"\n')
+            proxy.chmod(0o755)
+            env = dict(os.environ, PATH=directory + os.pathsep + os.environ["PATH"],
+                       TEST_DEPLOY_CALLS=str(calls))
+            subprocess.run(["bash", str(ROOT / "deploy/nautilus-reference/deploy.sh")],
+                           cwd=directory, env=env, check=True, capture_output=True, text=True)
+            arguments = calls.read_text().splitlines()
+            sources = [Path(arg.split("=", 1)[1]) for arg in arguments
+                       if arg.startswith("--from-file=")]
+            self.assertEqual(set(sources), {
+                ROOT / "deploy/nautilus-reference/run.sh",
+                ROOT / "scripts/jepa_smoke.py",
+                ROOT / "scripts/jepa_plan.py",
+                ROOT / "scripts/inspect_data.py",
+                ROOT / "deploy/nautilus/runtime-setup.sh",
+                ROOT / "notes/upstream.json",
+            })
+            self.assertTrue(all(path.is_file() for path in sources))
+            self.assertEqual(arguments.count(str(ROOT / "deploy/nautilus-reference/job.yaml")), 2)
+
     def test_step1_mounts_current_source_and_runs_checks_in_order(self):
-        source = ROOT / "src/step1"
+        source = ROOT / "deploy/nautilus-reference"
         job = yaml.safe_load((source / "job.yaml").read_text())
         self.assertEqual(job["spec"]["backoffLimit"], 0)
-        self.assertGreater(job["spec"]["activeDeadlineSeconds"], 0)
+        self.assertNotIn("activeDeadlineSeconds", job["spec"])
         pod = job["spec"]["template"]["spec"]
         self.assertFalse(pod["automountServiceAccountToken"])
         self.assertEqual(pod["containers"][0]["command"], ["/bin/bash", "/opt/step1/run.sh"])
@@ -29,7 +53,7 @@ class NautilusTests(unittest.TestCase):
             self.assertTrue(any(m["mountPath"] == "/opt/step1" and m["readOnly"]
                                 for m in container["volumeMounts"]))
         script = (source / "run.sh").read_text()
-        commands = ["jepa_smoke.py\n", "--dataset pointmaze\n", "inspect_data.py\n",
+        commands = ["jepa_smoke.py\n", "--dataset pointmaze $dl_force\n", "inspect_data.py\n",
                     "jepa_plan.py --episodes 2\n", 'touch "$run_dir/SUCCESS"']
         positions = [script.index(command) for command in commands]
         self.assertEqual(positions, sorted(positions))
@@ -49,15 +73,19 @@ class NautilusTests(unittest.TestCase):
             self.assertIn({"name": "OMNI_KIT_ACCEPT_EULA", "value": "YES"}, item["env"])
         self.assertNotIn("tolerations", pod)
 
-    def test_jobs_are_finite_and_preserve_results(self):
-        for path in DEPLOY.glob("*-job.yaml"):
+    def test_jobs_preserve_results_and_resource_limits(self):
+        paths = (list(DEPLOY.glob("*-job.yaml"))
+                 + list((ROOT / "deploy/nautilus-navigation").glob("*job.yaml"))
+                 + list((ROOT / "deploy/nautilus-jepa-rover").glob("*job.yaml")))
+        for path in paths:
             with self.subTest(path=path.name):
                 job = yaml.safe_load(path.read_text())
                 # Kubernetes' YAML parser also treats bare Y/N as booleans.
                 self.assertNotRegex(path.read_text(), r"(?m)^\s*value: (?:Y|N|yes|no|on|off)$")
                 self.assertEqual(job["kind"], "Job")
                 self.assertEqual(job["metadata"]["namespace"], "razvanlab")
-                self.assertGreater(job["spec"]["activeDeadlineSeconds"], 0)
+                if path.parent.name == "nautilus-jepa-rover":
+                    self.assertNotIn("activeDeadlineSeconds", job["spec"])
                 pod = job["spec"]["template"]["spec"]
                 self.assertEqual(pod["restartPolicy"], "Never")
                 self.assertFalse(pod["automountServiceAccountToken"])
@@ -83,6 +111,11 @@ class NautilusTests(unittest.TestCase):
                 runtime = next(v for v in pod["volumes"] if v["name"] == "runtime")
                 self.assertIn("emptyDir", runtime)
                 self.assertNotIn("medium", runtime["emptyDir"])
+
+    def test_rover_jepa_workloads_have_no_elapsed_time_cutoff(self):
+        folder = ROOT / "deploy/nautilus-jepa-rover"
+        for name in ("train.sh", "collect.sh", "evaluate.sh"):
+            self.assertNotIn("timeout ", (folder / name).read_text())
 
     def test_stacks_install_separately_and_data_download_is_lightweight(self):
         for name, mode in (("rover-job.yaml", "rover"), ("jepa-job.yaml", "jepa"),

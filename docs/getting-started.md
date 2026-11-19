@@ -11,10 +11,10 @@ proxy. Install RTK first, or remove its prefix when using these tools directly.
 ## Run on NRP Nautilus
 
 For Step 1 (JEPA checkpoint loading, PointMaze sample inspection, and two planning
-episodes), run `rtk proxy bash src/step1/deploy.sh`. See the
-[Step 1 guide](../src/step1/README.md) for logs and saved results. The first run
-failed on an upstream Metaworld branch reference. Resolve the
-[setup blocker](results.md#reference-planning) before retrying.
+episodes), run `rtk proxy bash deploy/nautilus-reference/deploy.sh`. See the
+[Step 1 guide](../deploy/nautilus-reference/README.md) for logs and saved results. The first run
+failed on an upstream Metaworld branch reference. The runtime installer now
+overrides that dependency; a new full run is still needed.
 
 See [the Nautilus deployment guide](../deploy/nautilus/README.md) for one slim shared
 Docker image and separate Kubernetes Jobs for headless RLRoverLab, JEPA checkpoint
@@ -24,6 +24,11 @@ before submitting. The A40 rover example is verified: 120 headless environment
 steps, exit code 0. Use the deployment guide's `deploy/nautilus-a40` recipe.
 
 ## Local workspace
+
+For rover JEPA training and simulation data collection, use the separate
+[training guide](../deploy/nautilus-jepa-rover/README.md). It names the starting
+model, fixed data splits, quality checks, and saved artifacts. Check existing
+Jobs before launching; do not overwrite a prior run.
 
 **Local hardware choice: CPU-only MarsExplorer on the Mac.** NVIDIA hardware
 is not required for this local starter path. Use Nautilus RTX GPU nodes for
@@ -63,6 +68,61 @@ The activation script sets absolute JEPA paths and project-local cache locations
 It does not install packages. A nonzero check result means prerequisites remain
 missing; see [the setup record](../notes/setup.md).
 
+## Train the first rover baseline locally
+
+The rover baseline predicts changes in goal distance and angles from current
+and previous commands. It learns forward movement, lateral movement, and yaw
+(rotation around the vertical axis) in the rover frame. It converts those
+predictions back to goal fields. It does not predict the height scan or use
+terrain as an input.
+
+With the first HDF5 file at `data/rover/rover_seed_0.hdf5`, run on CPU:
+
+```bash
+rtk proxy uv run --no-project --python 3.12 --with torch --with h5py --with numpy python scripts/train_rover_baseline.py
+```
+
+The script holds out the last episode by default. For the expanded check, train
+on Mars seeds 0 and 1, validate on debug seed 1, and score debug seed 2 separately:
+
+```bash
+rtk proxy uv run --no-project --python 3.12 --with torch --with h5py --with numpy python scripts/train_rover_baseline.py \
+  --data data/rover/rover_seed_0.hdf5 data/rover/mars-rover-variation-0/rover_seed_1.hdf5 \
+  --validation-data data/rover/mars-rover-variation-1/rover_seed_1.hdf5 \
+  --test-data data/rover/mars-rover-variation-3/rover_seed_2.hdf5
+```
+
+Copy each completed run from `/data/datasets/rover/` on the shared cluster
+volume to `data/rover/`, keeping its run directory and `metadata.json`.
+The loader rejects duplicate file paths, incompatible dimensions, invalid values,
+resets inside episodes, and mismatched action timing. It omits the first
+transition after each reset because goal fields can be stale. It also omits the
+last action because the following policy observation is not saved. Angle errors
+use the shortest distance around the circle. Five-step evaluation stays inside
+each episode.
+
+Training first fits 32 transitions, then runs 1,000 optimizer steps for each of
+two models: one with commands and one without commands. Training data alone
+sets the target scales. No test data enters the optimizer. Each dated output
+folder in `runs/rover-baseline/` contains `model.pt`, `no-action.pt`, `metrics.json`,
+and a copy of the training source. The new checkpoint schema is `goal-motion-v1`;
+older observation-vector checkpoints use a different architecture.
+
+Compare `validation.goal_mse` with `validation.copy_goal_mse` and
+`validation_no_action.goal_mse`. The same comparisons are available under `test`
+and `test_no_action`. A higher `shuffled_action_goal_mse` shows that correct
+commands improve prediction. The `rollout` scores compare five-step predictions
+with copying. Scores average the three scaled goal fields, not physical units.
+
+The current seed-2 recording has already been inspected during development.
+Treat it as a held-out diagnostic, not a fresh final test. Reserve a future
+recording before tuning further. This model assumes a fixed goal within each
+episode. It does not establish wheel slip, terrain response, or navigation quality.
+
+To connect the checkpoint to the headless simulator, follow the
+[scan-aware navigation guide](../deploy/nautilus-navigation/README.md). It includes
+paired comparisons with the original planner and scripted forward motion.
+
 ## Finish the reference installation
 
 On a network-enabled, compatible Linux host, follow the downloaded upstream
@@ -80,8 +140,8 @@ rtk proxy python external/jepa-wms/setup_macros.py
 rtk proxy python scripts/check_setup.py
 ```
 
-The upstream install currently has the Metaworld dependency blocker described
-in [results](results.md#reference-planning). After resolving it, follow the
+The upstream install needs the Metaworld override in
+`deploy/nautilus/runtime-setup.sh`. See [results](results.md#reference-planning), then follow the
 checkpoint, dataset, MuJoCo, and evaluation instructions. Keep Isaac/RLRoverLab
 in a separate environment. Complete both independent milestones in
 [the requirements](../REQUIREMENTS.md) before rover model integration.

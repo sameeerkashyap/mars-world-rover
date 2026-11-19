@@ -10,12 +10,47 @@ simulation dependencies.
 | Component | Role | Current state |
 | :--- | :--- | :--- |
 | RLRoverLab / Isaac Sim | Run 3D rover physics | Scripted headless motion verified on an A40 |
-| Rover recorder | Save positions, rewards, and reset flags | Position trace verified; training observations/actions still needed |
-| JEPA reference job | Load a model, inspect data, evaluate planning | Implemented; dependency setup blocked |
+| Rover recorder | Save observations, actions, rewards, and episode boundaries | 24,000 raw rows across original and new recordings; six new collection seeds complete |
+| JEPA reference job | Load a model, inspect data, evaluate planning | Deployment repaired; full dependency/setup rerun still needed |
+| Goal-motion baseline | Predict movement from current and previous commands | Beats copying on available held-out goal fields; terrain inputs not used |
+| Rover JEPA predictor | Predict future terrain features using a frozen DINOv2 encoder and Meta predictor | 167,904 trainable parameters; motion baseline aligns past terrain; offline development checks in progress |
+| Rover planner | Follow a scan-derived route with learned motion predictions | 4/6 goals on both original and fresh cases; no scan-aware collisions |
 | MarsExplorer | Optional local 2D prototype | Recorder exists; local runtime remains unverified |
 | Shared storage | Keep data, weights, logs, and results | Nautilus `mars-world-data` volume |
 
-## Planned model pipeline
+The current baseline has this small path:
+
+```text
+Height scan → local clearance map → short route
+                                      ↓
+Goal state → candidate commands → learned movement predictions → chosen command
+    ↑                                                               ↓
+    └────────────────────── Isaac Sim rover ─────────────────────────┘
+```
+
+The learned movement has forward, lateral, and yaw components. Goal geometry
+provides training targets. Angles wrap around the circle. The neural motion model excludes the height scan. The planner uses the scan
+to build a local clearance map, find a route, and reject predicted paths that
+enter unsafe cells. See [results](results.md#corrected-goal-motion-baseline)
+for prediction results and [navigation](results.md#end-to-end-rover-navigation)
+for the measured control results.
+
+## Repository layout
+
+```text
+scripts/                    Reference checks, data tools, training, and planning
+deploy/nautilus-reference/   Reference job, launcher, run sequence, and guide
+deploy/nautilus-*/           Other Nautilus workloads and their setup
+tests/                      Checks for script and deployment interfaces
+external/                   Pinned upstream model and simulator code
+```
+
+Run local Python tools from `scripts/`. Keep cluster configuration and shell
+launchers in the matching `deploy/` folder. The reference launcher's interface
+is `bash deploy/nautilus-reference/deploy.sh`. It mounts the Python scripts
+without rebuilding the image. There is no local model package in `src/`.
+
+## Model pipeline
 
 ```mermaid
 flowchart LR
@@ -30,8 +65,7 @@ flowchart LR
 
 The encoder maps observations into a compact set of features. The predictor uses
 those features and candidate actions to estimate future features. The planner
-compares possible futures and chooses commands toward a goal. Rover integration
-and this control loop are future work.
+compares possible futures and chooses commands toward a goal. The small goal-motion model already closes a control loop. The rover JEPA model now predicts terrain features offline. Connecting its forecasts to the planner remains future work. Its pose predictions come from the frozen motion baseline. See the [training guide](../deploy/nautilus-jepa-rover/README.md). The current height rules are a geometric approximation.
 
 Save each transition as `observation[t], action[t], observation[t+1]`. Keep time,
 episode boundaries, goals, and outcomes with it. Keep simulator-only diagnostics
@@ -46,7 +80,7 @@ current Step 1 scripts without an image rebuild.
 | Path on Nautilus | Contents |
 | :--- | :--- |
 | `/runtime/` | Temporary source, environments, and installed packages |
-| `/data/datasets/` | Reference data and future rover datasets |
+| `/data/datasets/` | PointMaze data and the rover starter dataset |
 | `/data/checkpoints/` | Model weights |
 | `/data/runs/setup/<pod>/` | Installation logs and package versions |
 | `/data/runs/jepa/<pod>/` | Reference checks, config, and planning results |

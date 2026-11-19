@@ -29,7 +29,7 @@ ENV VIRTUAL_ENV=/runtime/env \
     MUJOCO_GL=egl \
     PYOPENGL_PLATFORM=egl \
     LD_LIBRARY_PATH=/runtime/ffmpeg/lib:/runtime/mujoco/mujoco210/bin:/usr/local/nvidia/lib:/usr/local/nvidia/lib64
-COPY deploy/nautilus/*-run.sh deploy/nautilus/runtime-setup.sh src/step1/jepa_*.py /opt/cluster/
+COPY deploy/nautilus/*-run.sh deploy/nautilus/runtime-setup.sh scripts/jepa_*.py /opt/cluster/
 COPY deploy/nautilus/rover_record*.py /opt/cluster/
 COPY notes/upstream.json /opt/upstream.json
 WORKDIR /runtime
