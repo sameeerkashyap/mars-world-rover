@@ -18,23 +18,6 @@ simulation dependencies.
 | MarsExplorer | Optional local 2D prototype | Recorder exists; local runtime remains unverified |
 | Shared storage | Keep data, weights, logs, and results | Nautilus `mars-world-data` volume |
 
-The current baseline has this small path:
-
-```text
-Height scan → local clearance map → short route
-                                      ↓
-Goal state → candidate commands → learned movement predictions → chosen command
-    ↑                                                               ↓
-    └────────────────────── Isaac Sim rover ─────────────────────────┘
-```
-
-The learned movement has forward, lateral, and yaw components. Goal geometry
-provides training targets. Angles wrap around the circle. The neural motion model excludes the height scan. The planner uses the scan
-to build a local clearance map, find a route, and reject predicted paths that
-enter unsafe cells. See [results](results.md#corrected-goal-motion-baseline)
-for prediction results and [navigation](results.md#end-to-end-rover-navigation)
-for the measured control results.
-
 ## Repository layout
 
 ```text
@@ -50,7 +33,7 @@ launchers in the matching `deploy/` folder. The reference launcher's interface
 is `bash deploy/nautilus-reference/deploy.sh`. It mounts the Python scripts
 without rebuilding the image. There is no local model package in `src/`.
 
-## Model pipeline
+## Planned model pipeline
 
 ```mermaid
 flowchart LR

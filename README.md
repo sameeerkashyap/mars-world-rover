@@ -74,8 +74,7 @@ rtk kubectl --context nautilus -n razvanlab logs -f job/mars-jepa-step1 -c setup
 The job checks checkpoint loading, inspects a PointMaze sample, and runs two
 planning episodes. **The current run failed during dependency setup.** Follow the
 [Step 1 guide](deploy/nautilus-reference/README.md) and [status notes](docs/results.md#reference-planning)
-before retrying. The installer now overrides the failing dependencies. A full rerun is still
-needed. The deploy script protects an existing job from replacement.
+before retrying. The deploy script protects an existing job from replacement.
 
 For the rover simulator and the local CPU prototype, see
 [getting started](docs/getting-started.md).

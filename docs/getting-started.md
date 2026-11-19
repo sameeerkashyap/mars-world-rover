@@ -13,8 +13,8 @@ proxy. Install RTK first, or remove its prefix when using these tools directly.
 For Step 1 (JEPA checkpoint loading, PointMaze sample inspection, and two planning
 episodes), run `rtk proxy bash deploy/nautilus-reference/deploy.sh`. See the
 [Step 1 guide](../deploy/nautilus-reference/README.md) for logs and saved results. The first run
-failed on an upstream Metaworld branch reference. The runtime installer now
-overrides that dependency; a new full run is still needed.
+failed on an upstream Metaworld branch reference. Resolve the
+[setup blocker](results.md#reference-planning) before retrying.
 
 See [the Nautilus deployment guide](../deploy/nautilus/README.md) for one slim shared
 Docker image and separate Kubernetes Jobs for headless RLRoverLab, JEPA checkpoint
