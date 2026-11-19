@@ -10,7 +10,7 @@ measured results before extending the model pipeline.
 | [System overview](architecture.md) | Understand the components and planned data flow |
 | [Results and evidence](results.md) | Check what has run and what is still blocked |
 | [Roadmap](roadmap.md) | Follow the next three development steps |
-| [Step 1](../src/step1/README.md) | Deploy and inspect the reference JEPA evaluation |
+| [Step 1](../deploy/nautilus-reference/README.md) | Deploy and inspect the reference JEPA evaluation |
 | [Nautilus operations](../deploy/nautilus/README.md) | Build images and manage simulator jobs |
 | [Requirements](../REQUIREMENTS.md) | Check acceptance criteria and scope |
 | [Setup history](../notes/setup.md) | Trace environment changes and past runs |

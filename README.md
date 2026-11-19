@@ -59,13 +59,13 @@ With Nautilus access, the published runtime image, and the existing shared
 storage configured:
 
 ```bash
-rtk proxy bash src/step1/deploy.sh
+rtk proxy bash deploy/nautilus-reference/deploy.sh
 rtk kubectl --context nautilus -n razvanlab logs -f job/mars-jepa-step1 -c setup
 ```
 
 The job checks checkpoint loading, inspects a PointMaze sample, and runs two
 planning episodes. **The current run failed during dependency setup.** Follow the
-[Step 1 guide](src/step1/README.md) and [status notes](docs/results.md#reference-planning)
+[Step 1 guide](deploy/nautilus-reference/README.md) and [status notes](docs/results.md#reference-planning)
 before retrying. The deploy script protects an existing job from replacement.
 
 For the rover simulator and the local CPU prototype, see
@@ -74,10 +74,9 @@ For the rover simulator and the local CPU prototype, see
 ## Project map
 
 ```text
-src/step1/     Reference JEPA evaluation and deployment
 deploy/       Nautilus jobs, simulator recording, and runtime setup
 docker/       Shared runtime image and preflight checks
-scripts/      Local setup checks and CPU trajectory recorder
+scripts/      Reference checks, recording, training, and planning
 tests/        Deployment and recording checks
 docs/         Guides, results, roadmap, and illustrations
 notes/        Run history and upstream revision pins

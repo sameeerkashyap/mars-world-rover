@@ -11,8 +11,8 @@ proxy. Install RTK first, or remove its prefix when using these tools directly.
 ## Run on NRP Nautilus
 
 For Step 1 (JEPA checkpoint loading, PointMaze sample inspection, and two planning
-episodes), run `rtk proxy bash src/step1/deploy.sh`. See the
-[Step 1 guide](../src/step1/README.md) for logs and saved results. The first run
+episodes), run `rtk proxy bash deploy/nautilus-reference/deploy.sh`. See the
+[Step 1 guide](../deploy/nautilus-reference/README.md) for logs and saved results. The first run
 failed on an upstream Metaworld branch reference. Resolve the
 [setup blocker](results.md#reference-planning) before retrying.
 

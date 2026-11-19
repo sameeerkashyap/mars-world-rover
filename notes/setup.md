@@ -30,7 +30,7 @@ no automatic retries. The shared PVC remains intact.
 
 Validation: 10 unit tests passed, all three Step 1 Python files parsed, both new
 shell scripts passed syntax checks, and the job passed server-side validation.
-Full planning results remain pending. See `src/step1/README.md` for log commands.
+Full planning results remain pending. See `deploy/nautilus-reference/README.md` for log commands.
 
 ## Recorded motion results — 2026-11-06 UTC
 
