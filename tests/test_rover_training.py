@@ -2,7 +2,7 @@ from pathlib import Path
 import random
 import tempfile
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import numpy as np
 import torch
@@ -67,6 +67,18 @@ class RoverTrainingTests(unittest.TestCase):
         torch.testing.assert_close(latent_scale, latent.std(dim=(0, 1), unbiased=False))
         self.assertGreater(retained, 0)
         self.assertLessEqual(retained, 1)
+
+    def test_full_feature_windows_skip_pca(self):
+        episodes = self.episodes()
+        with patch("torch.linalg.eigh", side_effect=AssertionError("Full features do not need PCA")):
+            mean, scale, projection, latent_scale, _, retained = feature_statistics(episodes, project=False)
+        self.assertIsNone(projection)
+        self.assertIsNone(latent_scale)
+        self.assertEqual(retained, 1.)
+        dataset = WindowDataset(episodes, mean, scale, projection, latent_scale)
+        features, _, _, full = dataset.batch([0, 1])
+        self.assertEqual(features.shape, (2, 7, 64, 384))
+        torch.testing.assert_close(features, full)
 
     def test_resume_reproduces_next_optimizer_step_and_rejects_changed_run(self):
         torch.manual_seed(0)

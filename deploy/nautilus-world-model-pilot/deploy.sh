@@ -14,6 +14,7 @@ fi
     --from-file="train.sh=$root/deploy/nautilus-world-model-pilot/train.sh" \
     --from-file="prepare_split.py=$root/deploy/nautilus-jepa-rover/prepare_split.py" \
     --from-file="train_world_model_pilot.py=$root/scripts/train_world_model_pilot.py" \
+    --from-file="evaluate_world_model_pilot.py=$root/scripts/evaluate_world_model_pilot.py" \
     --from-file="train_rover_jepa.py=$root/scripts/train_rover_jepa.py" \
     --from-file="train_rover_baseline.py=$root/scripts/train_rover_baseline.py" \
     --from-file="rover_training.py=$root/src/rover_training.py" \

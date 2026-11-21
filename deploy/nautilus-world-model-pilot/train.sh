@@ -29,6 +29,7 @@ python -u -m scripts.train_world_model_pilot \
     --data "${training[@]}" --validation-data "${validation[@]}" \
     --encoder-source /runtime/dinov2 --upstream /opt/train/upstream \
     --motion-baseline "${baseline_model[0]}" --cache-dir /data/cache/rover-jepa-features \
+    --residual-checkpoint /data/runs/rover-jepa/mars-rover-jepa-train-v12-dfj2t/training/best.pt \
     --output "$run_dir/training" "${resume[@]}" "$@"
 test -f "$run_dir/training/FINISHED"
 touch "$run_dir/FINISHED"

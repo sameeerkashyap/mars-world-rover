@@ -10,7 +10,7 @@ import numpy as np
 import torch
 
 from scripts.train_rover_baseline import model_for
-from scripts.train_rover_jepa import encode_episodes, file_hash, prior_motion, update_plateau, warp_features
+from scripts.train_rover_jepa import RoverJEPA, encode_episodes, file_hash, prior_motion, rollout, update_plateau, warp_features
 from src.rover_training import WindowDataset, atomic_save, cached_episodes, feature_statistics, restore_progress, save_progress
 from src.rover_world_model import RoverWorldModel
 
@@ -24,16 +24,70 @@ def full_batch(dataset, indices, device):
     return features.to(device), states[:, :2, :2].to(device), actions.to(device)
 
 
+def action_donors(dataset, indices):
+    episodes = [dataset.location(index)[0][0] for index in indices]
+    generator = torch.Generator().manual_seed(0)
+    donors = []
+    for episode in episodes:
+        eligible = [index for index, name in enumerate(episodes) if name != episode]
+        if not eligible:
+            raise ValueError("Action-use evaluation needs sampled windows from at least two episodes")
+        donors.append(eligible[int(torch.randint(len(eligible), (1,), generator=generator))])
+    return indices[donors]
+
+
+def candidate_passed(scores):
+    return (all(value >= 0.02 for value in scores["gain_over_transport"])
+            and all(value > 0 for value in scores["action_shuffle_increase"])
+            and all(model < control for key in ("copy", "current_residual")
+                    for model, control in zip(scores["model"], scores[key])))
+
+
+def load_residual(path, upstream, device):
+    if file_hash(path) != "e28f932c1c5802556aa4432eba63c0c2c5aa82799ddde2f7bcaa42945d2a9079":
+        raise ValueError("The frozen current-residual checkpoint changed")
+    checkpoint = torch.load(path, map_location=device, weights_only=True)
+    if checkpoint["manifest"]["model"] != "rover-dino-wm-v6":
+        raise ValueError("Expected the current transported-residual model")
+    model = RoverJEPA(upstream / "app/plan_common/models/vit.py", motion_prior=model_for(5, 2)).to(device)
+    model.load_state_dict(checkpoint["model"], strict=True)
+    model.eval().requires_grad_(False)
+    return model, {key: checkpoint[key].to(device) for key in ("mean", "scale", "projection", "latent_scale")}
+
+
+def residual_forecasts(residual, features, previous, blocks, normalization):
+    model, norm = residual
+    scale, mean = normalization["scale"], normalization["mean"]
+    raw = features[:, :2] * scale + mean
+    context = ((raw - norm["mean"]) / norm["scale"]) @ norm["projection"] / norm["latent_scale"]
+    states = features.new_zeros((len(features), 2, 6))
+    states[..., :2], states[..., 4] = previous, 1.
+    prediction = rollout(model, context, states, blocks, 5)[0]
+    transported, last_command, control = context[:, 1], previous[:, -1], []
+    for step in range(5):
+        transported = warp_features(transported, prior_motion(model.motion_prior, last_command, blocks[:, step + 1]))
+        last_command = blocks[:, step + 1, -2:]
+        control.append(transported)
+    forecasts = {"current_residual": prediction, "current_transport": torch.stack(control, dim=1)}
+    return {key: features[:, 1:2] + (((value - context[:, 1:2]) * norm["latent_scale"]) @ norm["projection"].T)
+            * norm["scale"] / scale for key, value in forecasts.items()}
+
+
 @torch.inference_mode()
-def evaluate(model, dataset, indices, scale, prior, device):
+def evaluate(model, dataset, indices, scale, prior, device, residual=None, normalization=None, recordings=None):
     model.eval()
-    totals = {key: torch.zeros(2, device=device) for key in ("model", "copy", "transport", "shuffled")}
-    wrong = dataset.batch(indices.roll(1))[2]
+    errors = {key: [] for key in ("model", "copy", "transport", "shuffled")}
+    objective_errors = []
+    if residual is not None:
+        errors.update({"current_residual": [], "current_transport": []})
+    donors = action_donors(dataset, indices)
+    wrong = dataset.batch(donors)[2]
     for start in range(0, len(indices), 16):
         features, previous, blocks = full_batch(dataset, indices[start:start + 16], device)
         shuffled = blocks.clone()
         shuffled[:, 1:] = wrong[start:start + 16, 1:].to(device)
         prediction = model.forecast(features[:, :2], previous, blocks)
+        objective_errors.append((prediction[:, :2] - features[:, 2:4]).square().mean(dim=(1, 2, 3)).cpu())
         perturbed = model.forecast(features[:, :2], previous, shuffled)
         transported = features[:, 1]
         last_command = previous[:, -1]
@@ -45,11 +99,23 @@ def evaluate(model, dataset, indices, scale, prior, device):
         target = features[:, [2, 6]]
         predictions = {"model": prediction[:, [0, 4]], "shuffled": perturbed[:, [0, 4]],
                        "transport": torch.stack(forecasts, dim=1)[:, [0, 4]], "copy": features[:, 1:2]}
+        if residual is not None:
+            predictions.update({key: value[:, [0, 4]] for key, value in
+                                residual_forecasts(residual, features, previous, blocks, normalization).items()})
         for key, value in predictions.items():
             if not torch.isfinite(value).all():
                 raise RuntimeError(f"Non-finite {key} validation forecast")
-            totals[key] += ((value - target) * scale).square().mean(dim=(2, 3)).sum(dim=0)
-    scores = {key: (value / len(indices)).cpu().tolist() for key, value in totals.items()}
+            errors[key].append(((value - target) * scale).square().mean(dim=-1).cpu())
+    errors = {key: torch.cat(value) for key, value in errors.items()}
+    scores = {key: value.mean(dim=(0, 2)).tolist() for key, value in errors.items()}
+    scores["normalized_training_objective"] = torch.cat(objective_errors).mean().item()
+    center = torch.tensor([27, 28, 35, 36])
+    scores["near_rover"] = {key: value[:, :, center].mean(dim=(0, 2)).tolist() for key, value in errors.items()}
+    episodes = [dataset.location(index)[0][0] for index in indices]
+    layouts = [(recordings or {}).get(name.rsplit(":", 1)[0], {}).get("terrain", name.rsplit(":", 1)[0]) for name in episodes]
+    for field, names in (("by_episode", episodes), ("by_layout", layouts)):
+        scores[field] = {name: {key: value[[n == name for n in names]].mean(dim=(0, 2)).tolist()
+                               for key, value in errors.items()} for name in sorted(set(names))}
     scores["selection_score"] = sum(a / max(b, 1e-12) for a, b in zip(scores["model"], scores["transport"])) / 2
     scores["gain_over_transport"] = [1 - a / max(b, 1e-12) for a, b in zip(scores["model"], scores["transport"])]
     scores["action_shuffle_increase"] = [a / max(b, 1e-12) - 1 for a, b in zip(scores["shuffled"], scores["model"])]
@@ -115,7 +181,8 @@ def train_arm(args, architecture, seed, train, validation, indices, val_indices,
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1., error_if_nonfinite=True)
             optimizer.step()
             total += loss.item() * len(batch)
-        scores = evaluate(model, validation, val_indices, normalization["scale"].to(device), prior, device)
+        scores = evaluate(model, validation, val_indices, normalization["scale"].to(device), prior, device,
+                          args.residual, {key: value.to(device) for key, value in normalization.items()}, manifest.get("recordings"))
         row = {"epoch": epoch + 1, "training_loss": total / len(indices), "validation": scores}
         history.append(row)
         print(json.dumps({"arm": output.name, **row}), flush=True)
@@ -129,13 +196,14 @@ def train_arm(args, architecture, seed, train, validation, indices, val_indices,
         save_progress(output / "last.pt", model, optimizer, identity, epoch + 1, history, best, plateau, stale, stopped)
     saved = torch.load(output / "best.pt", map_location=device, weights_only=True)
     model.load_state_dict(saved["model"], strict=True)
-    scores = evaluate(model, validation, val_indices, normalization["scale"].to(device), prior, device)
+    scores = evaluate(model, validation, val_indices, normalization["scale"].to(device), prior, device,
+                      args.residual, {key: value.to(device) for key, value in normalization.items()}, manifest.get("recordings"))
     if abs(scores["selection_score"] - saved["validation"]["selection_score"]) > 1e-6:
         raise RuntimeError("Checkpoint reload changed the validation score")
     report = {"architecture": architecture, "seed": seed, "best_epoch": saved["epoch"],
               "epochs": len(history), "stop_reason": stopped, "validation": scores,
-              "candidate_gate": all(x >= 0.02 for x in scores["gain_over_transport"])
-                                and all(x > 0 for x in scores["action_shuffle_increase"])}
+              "checkpoint_sha256": file_hash(output / "best.pt"),
+              "candidate_gate": candidate_passed(scores)}
     (output / "metrics.json").write_text(json.dumps(report, indent=2) + "\n")
     return report
 
@@ -147,6 +215,7 @@ def main():
     parser.add_argument("--encoder-source", type=Path, required=True)
     parser.add_argument("--upstream", type=Path, required=True)
     parser.add_argument("--motion-baseline", type=Path, required=True)
+    parser.add_argument("--residual-checkpoint", type=Path, required=True)
     parser.add_argument("--cache-dir", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--device", choices=("cpu", "cuda"), default="cuda")
@@ -180,17 +249,23 @@ def main():
     train_episodes = cached_episodes(args.data, encoder, device, args.cache_dir, signature, encode_episodes, file_hash)
     val_episodes = cached_episodes(args.validation_data, encoder, device, args.cache_dir, signature, encode_episodes, file_hash)
     del encoder
-    mean, scale, projection, latent_scale, _, _ = feature_statistics(train_episodes)
+    mean, scale, projection, latent_scale, _, _ = feature_statistics(train_episodes, project=False)
     train, validation = [WindowDataset(episodes, mean, scale, projection, latent_scale) for episodes in (train_episodes, val_episodes)]
     indices, val_indices = selected_indices(train, args.train_windows), selected_indices(validation, args.validation_windows)
     if min(len(indices), len(val_indices)) < 2:
         raise ValueError("Pilot needs at least two training and validation windows")
     prior = model_for(5, 2).to(device).eval().requires_grad_(False)
     prior.load_state_dict(torch.load(args.motion_baseline, map_location=device, weights_only=True)["model"])
+    args.residual = load_residual(args.residual_checkpoint, args.upstream, device)
     sources = [Path(__file__), Path(RoverWorldModel.forward.__code__.co_filename),
                Path(feature_statistics.__code__.co_filename), Path(encode_episodes.__code__.co_filename),
                Path(model_for.__code__.co_filename), *sorted(args.upstream.rglob("*.py"))]
-    manifest = {"schema": "rover-world-model-pilot-v1", "files": hashes, "encoder_weights": encoder_hash,
+    manifest = {"schema": "rover-world-model-pilot-v2", "files": hashes, "encoder_weights": encoder_hash,
+                "training_files": [str(path) for path in args.data], "validation_files": [str(path) for path in args.validation_data],
+                "current_residual_checkpoint": file_hash(args.residual_checkpoint),
+                "recordings": {str(path): json.loads((path.parent / "metadata.json").read_text())
+                               for path in paths if (path.parent / "metadata.json").is_file()},
+                "validation_action_donors": action_donors(validation, val_indices).tolist(),
                 "sources": {str(p): file_hash(p) for p in sources}, "motion_prior": file_hash(args.motion_baseline),
                 "train_indices": indices.tolist(), "validation_indices": val_indices.tolist(),
                 "epochs": args.epochs, "patience": args.patience, "batch_size": args.batch_size,

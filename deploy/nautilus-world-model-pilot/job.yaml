@@ -98,6 +98,8 @@ spec:
             path: prepare_split.py
           - key: train_world_model_pilot.py
             path: scripts/train_world_model_pilot.py
+          - key: evaluate_world_model_pilot.py
+            path: scripts/evaluate_world_model_pilot.py
           - key: train_rover_jepa.py
             path: scripts/train_rover_jepa.py
           - key: train_rover_baseline.py

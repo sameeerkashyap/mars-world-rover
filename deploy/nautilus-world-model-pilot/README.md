@@ -61,3 +61,38 @@ learning rate, context, capacity, or resolution. A useful offline result still
 needs a validated terrain readout and paired Isaac Sim navigation trials.
 See the [source decision](https://github.com/sameeerkashyap/mars-world-rover/issues/6)
 and [Wayfinder research plan](https://github.com/sameeerkashyap/mars-world-rover/issues/4).
+
+## Evaluation revision 2
+
+The running v1 GPU and CPU jobs retain the source frozen at commit `0caa1eb`.
+The revised evaluator can score their selected weights after completion; it
+does not retrain them or overwrite their original reports. Existing v1 jobs
+are left to finish. Future launches use the revised trainer in this PR.
+
+Revision 2 selects each action donor from a different episode and saves the
+donor indices. It reports errors by episode and layout, plus feature error on
+the central 2-by-2 patches used by the navigation readout. These center errors
+are not collision probabilities. The current validation recording covers only
+the debug layout; grouping does not establish unseen-layout performance.
+
+It also scores the frozen v12 transported-residual predictor and its own
+transport control. Their PCA predictions are restored to full features while
+preserving components outside the PCA subspace. The full-feature transport
+control uses the newer full-data motion prior; the current model's paired
+transport uses its original frozen prior. Both checkpoint identities are
+recorded. This keeps a motion-prior change distinct from learned corrections.
+
+Selected checkpoint hashes are saved with metrics. Re-evaluation requires
+exactly the frozen validation recordings and the same normalization, samples,
+encoder, and motion control across arms. V1 roles come from its saved
+`split.json`; revision 2 also records training/validation roles in checkpoints.
+Use `scripts/evaluate_world_model_pilot.py --help` for the separate evaluation
+entry point. `--run` points at a completed training directory; `--output` must
+be a new directory. `--split` supports explicit split-file locations.
+
+The revised candidate gate also requires lower error than both copying and
+the current residual predictor at both horizons. It remains a development
+screen; navigation replacement still requires paired simulator evidence.
+
+Full-feature training now skips unused covariance/PCA work. The projected
+training path remains available for the earlier scaled trainer.

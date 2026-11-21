@@ -6,7 +6,10 @@ import unittest
 import torch
 import yaml
 
-from scripts.train_world_model_pilot import evaluate, selected_indices
+from scripts.train_world_model_pilot import action_donors, candidate_passed, evaluate, selected_indices
+from scripts.train_world_model_pilot import residual_forecasts
+from scripts.evaluate_world_model_pilot import validate_recordings
+from scripts.train_rover_jepa import file_hash
 from src.rover_training import WindowDataset
 from src.rover_world_model import RoverWorldModel
 
@@ -27,6 +30,13 @@ class RecordedCommands(RoverWorldModel):
 class CopyFeatures(torch.nn.Module):
     def forecast(self, context, previous, blocks, steps=5):
         return context[:, -1:].expand(-1, steps, -1, -1)
+
+
+class PersistLatent(torch.nn.Module):
+    motion_prior = None
+
+    def forward(self, features, states, actions):
+        return features[:, -1], states[:, -1, 2:]
 
 
 class RoverWorldModelTests(unittest.TestCase):
@@ -83,15 +93,24 @@ class RoverWorldModelTests(unittest.TestCase):
 
     def test_metrics_use_correct_future_frames_and_identical_sample_indices(self):
         features = torch.arange(9.).reshape(9, 1, 1).expand(-1, 64, 384)
-        episodes = [("episode", features, torch.zeros(9, 6), torch.zeros(8, 10))]
+        episodes = [(f"recording:episode-{index}", features, torch.zeros(9, 6), torch.zeros(8, 10)) for index in range(2)]
         dataset = WindowDataset(episodes, torch.zeros(384), torch.ones(384), torch.eye(384)[:, :64], torch.ones(64))
         indices = selected_indices(dataset, 128)
-        self.assertEqual(indices.tolist(), [0, 1, 2])
+        self.assertEqual(indices.tolist(), [0, 1, 2, 3, 4, 5])
+        donors = action_donors(dataset, indices)
+        torch.testing.assert_close(donors, action_donors(dataset, indices))
+        self.assertTrue(all(dataset.location(index)[0][0] != dataset.location(donor)[0][0]
+                            for index, donor in zip(indices, donors)))
         scores = evaluate(CopyFeatures(), dataset, indices, torch.ones(384), None, "cpu")
         self.assertEqual(scores["model"], [1., 25.])
         self.assertEqual(scores["copy"], scores["model"])
         self.assertEqual(scores["transport"], scores["model"])
         self.assertEqual(scores["action_shuffle_increase"], [0., 0.])
+        self.assertEqual(scores["normalized_training_objective"], 2.5)
+        self.assertEqual(len(scores["by_episode"]), 2)
+        self.assertEqual(scores["near_rover"]["model"], scores["model"])
+        with self.assertRaises(ValueError):
+            action_donors(dataset, indices[:3])
 
     def test_pilot_deployment_contains_sources_and_no_elapsed_time_cutoff(self):
         folder = ROOT / "deploy/nautilus-world-model-pilot"
@@ -110,6 +129,42 @@ class RoverWorldModelTests(unittest.TestCase):
         runner = (folder / "train.sh").read_text()
         self.assertNotIn("--test-data", runner)
         self.assertNotIn("timeout ", runner)
+
+    def test_current_control_preserves_features_outside_its_pca_subspace(self):
+        torch.manual_seed(4)
+        features = torch.randn(2, 7, 64, 384)
+        old = {"mean": torch.randn(384), "scale": torch.rand(384) + 0.1,
+               "projection": torch.eye(384)[:, :64], "latent_scale": torch.rand(64) + 0.1}
+        normalization = {"mean": torch.randn(384), "scale": torch.rand(384) + 0.1}
+        outputs = residual_forecasts((PersistLatent(), old), features, torch.zeros(2, 2, 2), torch.zeros(2, 6, 10), normalization)
+        for value in outputs.values():
+            torch.testing.assert_close(value, features[:, 1:2].expand(-1, 5, -1, -1), atol=1e-5, rtol=1e-5)
+
+    def test_evaluation_refuses_training_recordings_in_place_of_validation(self):
+        with tempfile.TemporaryDirectory() as folder:
+            train, validation = Path(folder) / "train", Path(folder) / "validation"
+            train.write_bytes(b"training")
+            validation.write_bytes(b"validation")
+            manifest = {"files": {str(path): file_hash(path) for path in (train, validation)}}
+            split = {"validation": [str(validation)]}
+            validate_recordings(manifest, [validation], split)
+            with self.assertRaises(ValueError):
+                validate_recordings(manifest, [train], split)
+            manifest["validation_files"] = [str(validation)]
+            validate_recordings(manifest, [validation], {"validation": []})
+
+    def test_candidate_must_improve_current_predictor_and_copy_at_both_horizons(self):
+        scores = {"model": [0.8, 0.8], "copy": [1., 1.], "current_residual": [0.9, 0.9],
+                  "gain_over_transport": [0.2, 0.2], "action_shuffle_increase": [0.01, 0.01]}
+        self.assertTrue(candidate_passed(scores))
+        scores["current_residual"] = [0.7, 0.9]
+        self.assertFalse(candidate_passed(scores))
+        scores["current_residual"] = [0.9, 0.9]
+        scores["copy"] = [1., 0.7]
+        self.assertFalse(candidate_passed(scores))
+        scores["copy"] = [1., 1.]
+        scores["action_shuffle_increase"] = [0.01, 0.]
+        self.assertFalse(candidate_passed(scores))
 
 
 if __name__ == "__main__":

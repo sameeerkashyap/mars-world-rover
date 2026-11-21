@@ -51,9 +51,9 @@ def cached_episodes(paths, encoder, device, directory, signature, encode, digest
     return result
 
 
-def feature_statistics(episodes):
+def feature_statistics(episodes, project=True):
     total = torch.zeros(384, dtype=torch.float64)
-    cross = torch.zeros(384, 384, dtype=torch.float64)
+    cross = torch.zeros(384, 384, dtype=torch.float64) if project else None
     patch_total = torch.zeros(64, 384, dtype=torch.float64)
     patch_square = torch.zeros_like(patch_total)
     frames = 0
@@ -62,7 +62,8 @@ def feature_statistics(episodes):
             chunk = chunk.double()
             rows = chunk.flatten(0, 1)
             total += rows.sum(dim=0)
-            cross += rows.T @ rows
+            if project:
+                cross += rows.T @ rows
             patch_total += chunk.sum(dim=0)
             patch_square += chunk.square().sum(dim=0)
             frames += len(chunk)
@@ -70,16 +71,19 @@ def feature_statistics(episodes):
         raise ValueError("Need at least two encoded training frames")
     count = frames * 64
     mean = total / count
-    covariance = cross / count - mean[:, None] * mean[None, :]
-    scale = covariance.diag().clamp_min(0).sqrt().clamp_min(0.1)
-    covariance = covariance / scale[:, None] / scale[None, :]
-    eigenvalues, vectors = torch.linalg.eigh((covariance + covariance.T) / 2)
-    projection = vectors[:, -64:].flip(1)
-    latent_scale = eigenvalues[-64:].flip(0).clamp_min(0).sqrt().clamp_min(0.1)
+    variance = patch_square.sum(dim=0) / count - mean.square()
+    scale = variance.clamp_min(0).sqrt().clamp_min(0.1)
     patch_variance = (patch_square / frames - (patch_total / frames).square()).clamp_min(0)
     feature_std = patch_variance.sqrt().mean().item()
     if feature_std < 0.01:
         raise ValueError("Encoder features have insufficient variation")
+    if not project:
+        return mean.float(), scale.float(), None, None, feature_std, 1.
+    covariance = cross / count - mean[:, None] * mean[None, :]
+    covariance = covariance / scale[:, None] / scale[None, :]
+    eigenvalues, vectors = torch.linalg.eigh((covariance + covariance.T) / 2)
+    projection = vectors[:, -64:].flip(1)
+    latent_scale = eigenvalues[-64:].flip(0).clamp_min(0).sqrt().clamp_min(0.1)
     retained = eigenvalues[-64:].sum().item() / eigenvalues.sum().clamp_min(1e-12).item()
     return mean.float(), scale.float(), projection.float(), latent_scale.float(), feature_std, retained
 
@@ -110,7 +114,7 @@ class WindowDataset:
     def batch(self, indices):
         samples = [self.location(index) for index in indices]
         full = (torch.stack([episode[1][start:start + 7] for episode, start in samples]) - self.mean) / self.scale
-        latent = full @ self.projection / self.latent_scale
+        latent = full if self.projection is None else full @ self.projection / self.latent_scale
         states = torch.stack([episode[2][start:start + 7] for episode, start in samples])
         actions = torch.stack([episode[3][start:start + 6] for episode, start in samples])
         return latent, states, actions, full
