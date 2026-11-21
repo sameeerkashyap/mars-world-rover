@@ -15,10 +15,10 @@ from src.rover_world_model import RoverWorldModel
 
 def validate_recordings(manifest, paths, split):
     names = manifest.get("validation_files", split.get("validation", []))
-    expected = {manifest["files"][name] for name in names}
+    expected = [manifest["files"][name] for name in names]
     actual = [file_hash(path) for path in paths]
-    if len(set(actual)) != len(actual) or set(actual) != expected:
-        raise ValueError("Evaluation inputs must exactly match the frozen validation recordings")
+    if len(set(actual)) != len(actual) or actual != expected:
+        raise ValueError("Evaluation inputs must match the frozen validation recordings in their original order")
 
 
 def main():

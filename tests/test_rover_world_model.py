@@ -152,6 +152,13 @@ class RoverWorldModelTests(unittest.TestCase):
                 validate_recordings(manifest, [train], split)
             manifest["validation_files"] = [str(validation)]
             validate_recordings(manifest, [validation], {"validation": []})
+            second = Path(folder) / "validation-2"
+            second.write_bytes(b"second validation")
+            manifest["files"][str(second)] = file_hash(second)
+            manifest["validation_files"].append(str(second))
+            validate_recordings(manifest, [validation, second], split)
+            with self.assertRaises(ValueError):
+                validate_recordings(manifest, [second, validation], split)
 
     def test_candidate_must_improve_current_predictor_and_copy_at_both_horizons(self):
         scores = {"model": [0.8, 0.8], "copy": [1., 1.], "current_residual": [0.9, 0.9],
