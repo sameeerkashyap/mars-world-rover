@@ -1,5 +1,9 @@
 # Scan-aware learned-model rover navigation
 
+For the frozen v12 terrain-forecast integration and matched scan-only,
+motion-transport, and learned-forecast comparison, see
+[world-model navigation](../nautilus-jepa-navigation/README.md).
+
 This evaluation connects the trained `goal-motion-v1` checkpoint to RLRoverLab
 in Isaac Sim. It compares three controllers on matching seeds and goals:
 

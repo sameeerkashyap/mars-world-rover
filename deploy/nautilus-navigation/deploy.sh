@@ -15,6 +15,10 @@ done
     --from-file="rover_navigate.py=$root/deploy/nautilus-navigation/rover_navigate.py" \
     --from-file="rover_plan.py=$root/scripts/rover_plan.py" \
     --from-file="train_rover_baseline.py=$root/scripts/train_rover_baseline.py" \
+    --from-file="train_rover_jepa.py=$root/scripts/train_rover_jepa.py" \
+    --from-file="rover_forecast.py=$root/src/rover_forecast.py" \
+    --from-file="terrain_cost.py=$root/src/terrain_cost.py" \
+    --from-file="evaluation_terrain.py=$root/src/evaluation_terrain.py" \
     --from-file="model.pt=$checkpoint" \
     --from-file="runtime-setup.sh=$root/deploy/nautilus/runtime-setup.sh" \
     --from-file="run.sh=$root/deploy/nautilus-navigation/run.sh" \

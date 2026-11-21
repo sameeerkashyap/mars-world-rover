@@ -1,0 +1,74 @@
+{
+  "development": [
+    {
+      "terrain": "debug",
+      "seeds": [
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "terrain": "mars",
+      "seeds": [
+        7,
+        8,
+        9
+      ]
+    }
+  ],
+  "fresh": [
+    {
+      "terrain": "test-rocks-501",
+      "seeds": [
+        30,
+        31,
+        32
+      ]
+    },
+    {
+      "terrain": "test-rocks-502",
+      "seeds": [
+        33,
+        34,
+        35
+      ]
+    }
+  ],
+  "controllers": [
+    "model",
+    "transport",
+    "jepa"
+  ],
+  "steps": 750,
+  "forecast_weight": 0.25,
+  "forecast_seconds": 5,
+  "control_dt_seconds": 0.2,
+  "fresh_layout": {
+    "width_m": 30,
+    "rocks": 80,
+    "rock_size_m": [
+      0.3,
+      0.65
+    ],
+    "seeds": [
+      501,
+      502
+    ]
+  },
+  "scope": "Paired simulated navigation; new obstacle layouts, geometric terrain costs, no physical safety claim",
+  "sha256": {
+    "jepa_checkpoint": "e28f932c1c5802556aa4432eba63c0c2c5aa82799ddde2f7bcaa42945d2a9079",
+    "terrain_checkpoint": "c6c523d7db30c1bc43b8c82e73305c1d0ab5ec37dc682763d8bd2b0ef694511b",
+    "motion_checkpoint": "76953ac81e383a6000d9b26bf8026b5049f4ce768831bd48506dea31d7649283",
+    "predictor_source": "81d53872f60477ed3191f14ab3c71ee74e914945df3fac1a1ee378b9905d4087",
+    "jepa_source": "3046f8982e96f2ced33b590faf0babfad85134b2f866de22434ba04dcf80de8d",
+    "motion_source": "a595821fde3ec2f776aad54374dd30e9421ff56f226bdcb0e9f43de88b1f9cad",
+    "readout_source": "712ec84776f7e31badae4a350fbf72dc74558c9410272681c2bd2706a14c6013",
+    "planner_source": "b24b87d8b4c264cb8edf90e63bc69c732e00df5d7f51bfabff8d0dc39c286bed",
+    "runner_source": "a5fd452def42185172f6b6fbc0782c55979cc591d9ac87df0db11fcdd98369d3",
+    "forecast_source": "56ef2d81c74d0762e9409eb9a1191fd6e98ac74924ca4948b4d570bf46a4edc4",
+    "terrain_source": "a849ee76c909a8e3f1af8ab361c6d233fdf3c2dca93772ae16b4129052362075",
+    "encoder_weights": "b938bf1bc15cd2ec0feacfe3a1bb553fe8ea9ca46a7e1d8d00217f29aef60cd9"
+  }
+}

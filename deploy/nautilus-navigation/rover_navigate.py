@@ -9,20 +9,32 @@ import os
 from pathlib import Path
 import shutil
 import traceback
+import time
 
 from isaaclab.app import AppLauncher
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--task", default="AAURoverEnvSimple-v0")
-parser.add_argument("--terrain", choices=("debug", "mars"), default="debug")
+parser.add_argument("--terrain", default="debug")
 parser.add_argument("--seeds", type=int, nargs="+", default=[4, 5, 6])
 parser.add_argument("--steps", type=int, default=750)
 parser.add_argument("--checkpoint", type=Path, default=Path("/opt/navigation/model.pt"))
 parser.add_argument("--output", type=Path, default=Path("/data/runs/rover-navigation"))
+parser.add_argument("--jepa-run", type=Path)
+parser.add_argument("--terrain-checkpoint", type=Path)
+parser.add_argument("--encoder-source", type=Path, default=Path("/runtime/dinov2"))
+parser.add_argument("--predictor-source", type=Path, default=Path("/opt/navigation/meta_vit.py"))
+parser.add_argument("--test-plan", type=Path)
+parser.add_argument("--replay-plan", type=Path)
+parser.add_argument("--phase", choices=("development", "fresh"), default="development")
 AppLauncher.add_app_launcher_args(parser)
 args = parser.parse_args()
 if args.steps < 1 or len(set(args.seeds)) != len(args.seeds):
     parser.error("Steps must be positive and seeds must be distinct")
+if any((args.jepa_run, args.terrain_checkpoint, args.test_plan)) and not all((args.jepa_run, args.terrain_checkpoint, args.test_plan)):
+    parser.error("Forecast evaluation requires the JEPA run, terrain checkpoint, and frozen test plan")
+if args.replay_plan and args.test_plan:
+    parser.error("Use either a development replay or forecast test plan")
 args.enable_cameras = False
 app = AppLauncher(args).app
 
@@ -38,6 +50,10 @@ import rover_envs.envs.navigation.robots
 
 from scripts.rover_plan import plan_action
 from scripts.train_rover_baseline import model_for
+from src.rover_forecast import load_forecast
+from src.evaluation_terrain import heldout_meshes
+from rover_envs.assets.terrains.terrain_registry import register_terrain_from_folder
+from rover_envs.assets.terrains.generator.terrain_generator import save_to_usd
 
 
 class NavigationSnapshot(RecorderTerm):
@@ -68,8 +84,12 @@ class NavigationRecorderCfg(RecorderManagerBaseCfg):
     telemetry = RecorderTermCfg(class_type=NavigationSnapshot)
 
 
-def run_trial(env, model, seed, controller, output):
+def run_trial(env, model, seed, controller, output, forecast=None):
     env.reset(seed=seed)
+    use_forecast = controller in ("jepa", "transport")
+    hold_reached_goal = controller != "forward" and (controller == "model-hold" or not args.replay_plan)
+    if use_forecast:
+        forecast.reset(controller)
     device = env.unwrapped.device
     for _ in range(5):
         obs, _, terminated, truncated, _ = env.step(torch.zeros((1, 2), device=device))
@@ -82,29 +102,51 @@ def run_trial(env, model, seed, controller, output):
     align_heading = False
     initial_scan = obs["policy"][0, 5:].detach().cpu().numpy().copy()
     stopped_steps = 0
+    consecutive_stops = longest_stop = 0
+    planning_times = []
+    previous_action = None
+    ready_steps = 0
+    goal_hold_steps = 0
     result_path = output / f"seed-{seed}-{controller}"
     with result_path.with_suffix(".csv").open("w") as handle:
         writer = csv.writer(handle)
         writer.writerow(["step", "time_s", "x_m", "y_m", "z_m", "yaw_rad", "goal_x_m", "goal_y_m",
-                         "distance_m", "heading_error_rad", "speed_command", "turn_command", "native_success", "collision"])
+                         "distance_m", "heading_error_rad", "speed_command", "turn_command", "native_success", "collision", "planning_s", "forecast_ready", "goal_hold"])
         for step in range(args.steps):
             state = obs["policy"][:, :5].detach().cpu()
             distance = float(state[0, 2]) / 0.11
             heading = abs(float(state[0, 4])) * torch.pi
+            holding = hold_reached_goal and distance < 0.18 and heading < 0.1
+            goal_hold_steps += int(holding)
             if distance < 0.16:
                 align_heading = True
             if distance > 0.25 or (distance > 0.18 and heading < 0.08):
                 align_heading = False
             scan = obs["policy"][0, 5:].detach().cpu()
+            start_planning = time.perf_counter()
+            if use_forecast:
+                forecast.observe(obs["policy"][0].detach(), previous_action)
+            ready = use_forecast and forecast.ready
+            ready_steps += int(ready)
             if controller == "forward":
                 action = torch.tensor([[0.65, 0.0]])
             else:
                 action = plan_action(model, state, align_heading=align_heading,
-                                     height_scan=scan if controller == "model" else None)
-            stopped_steps += int(bool((action == 0).all()))
+                                     height_scan=scan if controller in ("model", "model-hold", "jepa", "transport") else None,
+                                     terrain_cost=forecast.costs if ready else None,
+                                     hold_reached_goal=hold_reached_goal)
+            if use_forecast and forecast.device.type == "cuda":
+                torch.cuda.synchronize(forecast.device)
+            planning_seconds = time.perf_counter() - start_planning
+            planning_times.append(planning_seconds)
+            stopped = int(bool((action == 0).all()))
+            stopped_steps += stopped
+            consecutive_stops = consecutive_stops + 1 if stopped else 0
+            longest_stop = max(longest_stop, consecutive_stops)
             if not torch.isfinite(action).all() or action[:, 0].abs().max() > 0.7 or action[:, 1].abs().max() > 0.35:
                 raise RuntimeError("Controller produced an invalid action")
             obs, reward, terminated, truncated, _ = env.step(action.to(device))
+            previous_action = action[0].detach().clone()
             sample = env.unwrapped.navigation_sample
             if not np.allclose(sample["goal"], initial["goal"], atol=1e-5, rtol=0):
                 raise RuntimeError("The goal changed inside an evaluated episode")
@@ -114,7 +156,7 @@ def run_trial(env, model, seed, controller, output):
             term = sample["termination"]
             writer.writerow([step + 1, (step + 1) * env.unwrapped.step_dt, *sample["position"], sample["yaw"],
                              *sample["goal"][:2], sample["distance_m"], sample["heading_error_rad"],
-                             *action[0].tolist(), term["is_success"], term["collision"]])
+                             *action[0].tolist(), term["is_success"], term["collision"], planning_seconds, ready, holding])
             if step % 50 == 0:
                 handle.flush()
                 print(f"seed={seed} controller={controller} step={step + 1} distance={sample['distance_m']:.3f}m heading={sample['heading_error_rad']:.3f}rad", flush=True)
@@ -133,7 +175,13 @@ def run_trial(env, model, seed, controller, output):
         "min_distance_m": min(sample["distance_m"] for sample in samples),
         "path_length_m": path_length, "reward_sum": reward_sum,
         "collision": any(sample["termination"]["collision"] for sample in samples),
-        "stopped_steps": stopped_steps,
+        "stopped_steps": stopped_steps, "max_consecutive_stop_steps": longest_stop,
+        "stalled": longest_stop >= 25, "forecast_ready_steps": ready_steps,
+        "goal_hold_steps": goal_hold_steps,
+        "hold_reached_goal": hold_reached_goal,
+        "planning_mean_s": float(np.mean(planning_times)), "planning_p95_s": float(np.percentile(planning_times, 95)),
+        "forecast_scoring_calls": forecast.scoring_calls if use_forecast else 0,
+        "forecast_scored_candidates": forecast.scored_candidates if use_forecast else 0,
     }
     if not np.isfinite([result["progress_m"], path_length, reward_sum]).all():
         raise RuntimeError("Non-finite trial result")
@@ -150,17 +198,49 @@ def main():
     model = model_for(checkpoint["obs_dim"], checkpoint["action_dim"])
     model.load_state_dict(checkpoint["model"])
     model.eval()
+    plan_path = args.replay_plan or args.test_plan
+    plan = json.loads(plan_path.read_text()) if plan_path else None
+    forecast = None
+    if plan is not None:
+        if args.replay_plan and (args.phase != "development" or plan["controllers"] != ["model", "model-hold"]):
+            raise ValueError("Goal-hold replay requires the two development controllers")
+        if ({"terrain": args.terrain, "seeds": args.seeds} not in plan[args.phase]
+                or args.steps != plan["steps"] or (not args.replay_plan and plan["forecast_weight"] != 0.25)):
+            raise ValueError("Trial cases differ from the frozen test plan")
+        for name, source in (("motion_checkpoint", args.checkpoint), ("planner_source", Path(plan_action.__wrapped__.__code__.co_filename)),
+                             ("runner_source", Path(__file__)), ("forecast_source", Path(load_forecast.__code__.co_filename)),
+                             ("terrain_source", Path(heldout_meshes.__code__.co_filename)),
+                             ("motion_source", Path(model_for.__code__.co_filename))):
+            if hashlib.sha256(source.read_bytes()).hexdigest() != plan["sha256"][name]:
+                raise ValueError(f"Frozen navigation input changed: {name}")
+        if not args.replay_plan:
+            forecast = load_forecast(args.jepa_run, args.terrain_checkpoint, args.encoder_source,
+                                     args.predictor_source, plan, args.device)
     output = args.output / os.environ.get("HOSTNAME", "local")
     output.mkdir(parents=True, exist_ok=False)
     source_dir = output / "source"
     source_dir.mkdir()
     source_hashes = {}
-    for source in (__file__, inspect.unwrap(plan_action).__code__.co_filename, model_for.__code__.co_filename):
+    for source in (__file__, inspect.unwrap(plan_action).__code__.co_filename, model_for.__code__.co_filename,
+                   load_forecast.__code__.co_filename, heldout_meshes.__code__.co_filename):
         source = Path(source)
         source_hashes[source.name] = hashlib.sha256(source.read_bytes()).hexdigest()
         shutil.copyfile(source, source_dir / source.name)
     cfg = parse_env_cfg(args.task, device=args.device, num_envs=1)
     cfg.seed = args.seeds[0]
+    if args.terrain.startswith("test-rocks-"):
+        layout_seed = int(args.terrain.removeprefix("test-rocks-"))
+        if plan is None or (args.phase != "fresh" and not args.replay_plan):
+            raise ValueError("Held-out layouts require the frozen fresh test plan")
+        layout = output / "terrain"
+        layout.mkdir()
+        ground, faces, rocks, rock_faces = heldout_meshes(layout_seed)
+        save_to_usd(str(layout / "terrain_only.usd"), ground, faces,
+                    root_prim_name="ground", mesh_prim_name="ground", collision_approximation="none")
+        save_to_usd(str(layout / "rocks_merged.usd"), rocks, rock_faces,
+                    root_prim_name="obstacles", mesh_prim_name="obstacles", collision_approximation="none")
+        register_terrain_from_folder(args.terrain, str(layout))
+        np.savez_compressed(layout / "meshes.npz", ground=ground, faces=faces, rocks=rocks, rock_faces=rock_faces)
     cfg.scene.set_terrain(args.terrain)
     pattern = cfg.scene.height_scanner.pattern_cfg
     if tuple(pattern.size) != (5.0, 5.0) or pattern.resolution != 0.05 or pattern.ordering != "xy":
@@ -171,7 +251,11 @@ def main():
     cfg.events.reset_joints = EventTermCfg(func=mdp.reset_joints_by_scale, mode="reset",
                                          params={"position_range": (1.0, 1.0), "velocity_range": (0.0, 0.0)})
     config = {"task": args.task, "terrain": args.terrain, "seeds": args.seeds, "max_steps": args.steps,
-              "controllers": ["model", "goal-only", "forward"],
+              "controllers": plan["controllers"] if args.replay_plan else
+                             ["model", "transport", "jepa"] if forecast is not None else ["model", "goal-only", "forward"],
+              "development_replay": bool(args.replay_plan),
+              "frozen_test_plan": plan, "phase": args.phase,
+              "forecast_scoring": {"weight": 0.25, "max_seconds": 5, "patches": "central 2x2 maximum", "alignment": "scan only"},
               "source_sha256": source_hashes,
               "checkpoint_sha256": hashlib.sha256(args.checkpoint.read_bytes()).hexdigest(),
               "planner": {"horizon_steps": 20, "alignment_horizon_steps": 5,
@@ -186,13 +270,16 @@ def main():
               "torch": str(torch.__version__), "numpy": np.__version__}
     (output / "config.json").write_text(json.dumps(config, indent=2) + "\n")
     env = gym.make(args.task, cfg=cfg)
+    if forecast is not None and abs(env.unwrapped.step_dt - 0.2) > 1e-6:
+        env.close()
+        raise ValueError("Forecast history requires a 0.2 second control interval")
     results = []
     try:
         with torch.inference_mode():
             for seed in args.seeds:
                 pair = []
                 for controller in config["controllers"]:
-                    result = run_trial(env, model, seed, controller, output)
+                    result = run_trial(env, model, seed, controller, output, forecast)
                     results.append(result)
                     pair.append(result)
                 for comparison in pair[1:]:
@@ -209,13 +296,20 @@ def main():
             "verified_successes": sum(result["verified_success"] for result in trials),
             "collisions": sum(result["collision"] for result in trials),
             "mean_progress_m": float(np.mean([result["progress_m"] for result in trials])),
+            "stalled_trials": sum(result["stalled"] for result in trials),
+            "mean_path_length_m": float(np.mean([result["path_length_m"] for result in trials])),
+            "mean_planning_s": float(np.mean([result["planning_mean_s"] for result in trials])),
         }
-    learned, forward = summary["controllers"]["model"], summary["controllers"]["forward"]
-    summary["meaningful_result"] = (learned["verified_successes"] > 0 and
-                                     learned["mean_progress_m"] > forward["mean_progress_m"])
+    if forecast is None and not args.replay_plan:
+        learned, forward = summary["controllers"]["model"], summary["controllers"]["forward"]
+        summary["meaningful_result"] = (learned["verified_successes"] > 0 and
+                                         learned["mean_progress_m"] > forward["mean_progress_m"])
+    else:
+        summary["meaningful_result"] = None
+        summary["evaluation_completed"] = True
     (output / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
     print(json.dumps(summary, indent=2), flush=True)
-    if not summary["meaningful_result"]:
+    if forecast is None and not args.replay_plan and not summary["meaningful_result"]:
         raise RuntimeError("Learned planning did not reach a verified goal and beat forward progress")
     (output / "SUCCESS").touch()
 

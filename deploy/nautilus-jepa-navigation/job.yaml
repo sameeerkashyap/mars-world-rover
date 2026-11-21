@@ -1,0 +1,149 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: razvanlab
+  name: mars-rover-jepa-navigation-20261120-v2
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: nvidia.com/gpu.product
+                operator: In
+                values:
+                - NVIDIA-RTX-A6000
+                - NVIDIA-A40
+                - NVIDIA-GeForce-RTX-3090
+                - NVIDIA-L40
+                - NVIDIA-L40S
+      containers:
+      - name: rover
+        image: docker.io/samkash/mars-runtime:uv4
+        args: []
+        env:
+        - name: ACCEPT_EULA
+          value: 'Y'
+        - name: OMNI_KIT_ACCEPT_EULA
+          value: 'YES'
+        - name: OMNI_KIT_ALLOW_ROOT
+          value: '1'
+        - name: NVIDIA_DRIVER_CAPABILITIES
+          value: compute,utility,graphics
+        - name: WANDB_MODE
+          value: offline
+        resources:
+          requests:
+            cpu: '4'
+            memory: 16Gi
+            ephemeral-storage: 100Gi
+            nvidia.com/gpu: '1'
+          limits:
+            cpu: '4'
+            memory: 16Gi
+            ephemeral-storage: 100Gi
+            nvidia.com/gpu: '1'
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: runtime
+          mountPath: /runtime
+        - name: shm
+          mountPath: /dev/shm
+        - name: scratch
+          mountPath: /tmp
+        - &id001
+          name: source
+          mountPath: /opt/navigation
+          readOnly: true
+        - &id002
+          name: source
+          mountPath: /opt/upstream.json
+          subPath: upstream.json
+          readOnly: true
+        command:
+        - /bin/bash
+        - /opt/navigation/run.sh
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: mars-world-data
+      - name: runtime
+        emptyDir:
+          sizeLimit: 90Gi
+      - name: shm
+        emptyDir:
+          medium: Memory
+          sizeLimit: 2Gi
+      - name: scratch
+        emptyDir:
+          sizeLimit: 5Gi
+      - name: source
+        configMap:
+          name: mars-rover-jepa-navigation-20261120-v2-source
+          items:
+          - key: rover_navigate.py
+            path: rover_navigate.py
+          - key: rover_plan.py
+            path: scripts/rover_plan.py
+          - key: train_rover_baseline.py
+            path: scripts/train_rover_baseline.py
+          - key: train_rover_jepa.py
+            path: scripts/train_rover_jepa.py
+          - key: rover_forecast.py
+            path: src/rover_forecast.py
+          - key: terrain_cost.py
+            path: src/terrain_cost.py
+          - key: evaluation_terrain.py
+            path: src/evaluation_terrain.py
+          - key: meta_vit.py
+            path: meta_vit.py
+          - key: model.pt
+            path: model.pt
+          - key: runtime-setup.sh
+            path: runtime-setup.sh
+          - key: setup.sh
+            path: setup.sh
+          - key: run.sh
+            path: run.sh
+          - key: verify.py
+            path: verify.py
+          - key: test-plan.json
+            path: test-plan.json
+          - key: upstream.json
+            path: upstream.json
+      initContainers:
+      - name: setup
+        image: docker.io/samkash/mars-runtime:uv4
+        command:
+        - /bin/bash
+        - /opt/navigation/setup.sh
+        args: []
+        resources:
+          requests:
+            cpu: '4'
+            memory: 8Gi
+            ephemeral-storage: 100Gi
+          limits:
+            cpu: '4'
+            memory: 8Gi
+            ephemeral-storage: 100Gi
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: runtime
+          mountPath: /runtime
+        - *id001
+        - *id002
+        env:
+        - name: ACCEPT_EULA
+          value: 'Y'
+        - name: OMNI_KIT_ACCEPT_EULA
+          value: 'YES'

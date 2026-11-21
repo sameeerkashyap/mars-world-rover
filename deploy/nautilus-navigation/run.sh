@@ -13,6 +13,6 @@ export PYTHONPATH="/opt/navigation:$ROVER_LAB_PATH${PYTHONPATH:+:$PYTHONPATH}"
 export ISAAC_SIM_PATH="$(python -c 'import importlib.util; print(next(iter(importlib.util.find_spec("isaacsim").submodule_search_locations)))')"
 nvidia-smi > "$run_dir/hardware.txt"
 python tools/verify_stack.py > "$run_dir/stack.json"
-timeout --signal=TERM --kill-after=30s 3600s python -X faulthandler -u /opt/navigation/rover_navigate.py "$@" --viz none
+python -X faulthandler -u /opt/navigation/rover_navigate.py "$@" --viz none
 test -f "/data/runs/rover-navigation/${HOSTNAME}/SUCCESS"
 touch "$run_dir/SUCCESS"

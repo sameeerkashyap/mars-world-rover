@@ -362,6 +362,130 @@ Evidence and procedure:
 - [Reserved test plan](results/rover-jepa/test-plan.json).
 - [Training and collection guide](../deploy/nautilus-jepa-rover/README.md).
 
+## Terrain-cost training foundation
+
+The first terrain-cost readout trained for 60 epochs on the existing Mars seed
+0 and Mars seed 1 recordings. It used 301 sampled training frames and 181 debug
+seed 1 validation frames. DINOv2, the selected rover JEPA checkpoint, feature
+projection, and motion prior stayed frozen. Only the 65-parameter readout trained.
+Epoch 60 had the lowest measured validation error. Reloaded weights reproduced
+the readout predictions exactly.
+
+The target is the fraction of each spatial patch blocked by the current
+height-scan clearance rules. These are geometric labels, not measured traction
+or collision probabilities. All feature forecast methods use the same readout.
+The constant baseline uses the training mean for each patch.
+
+| Development validation, 163 windows | JEPA cost MSE | Copy features | Motion-only transport | Constant per patch |
+| :--- | ---: | ---: | ---: | ---: |
+| 1 second | 0.063923 | 0.069696 | 0.066339 | 0.075708 |
+| 5 seconds | 0.067056 | 0.078578 | 0.077090 | 0.078090 |
+
+JEPA cost error was 8.3% below copying at one second and 14.7% below copying at
+five seconds. It was 3.6% and 13.0% below motion-only transport. On measured
+validation features, readout MSE was 0.071625, versus 0.077191 for the constant
+per-patch baseline. This run used a subset of the original training recordings.
+It did not open development-test or reserved-test recordings and does not
+establish performance on new layouts or closed-loop navigation.
+
+[Saved report](terrain-cost-metrics.json) records file and checkpoint hashes,
+the training history, and all scores. The local checkpoint and source copies
+are in `runs/terrain-cost/initial/`. Follow the
+[training procedure](../deploy/nautilus-jepa-rover/README.md#train-terrain-costs-from-the-recordings)
+to train on the remaining original training files or repeat this check.
+
+## Frozen forecast navigation: development comparison
+
+Job `mars-rover-jepa-navigation-20261120-v1` completed all 18 paired development
+trials on debug seeds 4–6 and Mars seeds 7–9. The learned forecast uses the
+quality-passed v12 DINO-WM rover predictor and the full-data terrain-cost readout.
+All controllers share the same motion model and measured-scan rejection rules.
+
+| Controller | Goals | Collisions | Stalled trials | Mean planning time |
+| :--- | ---: | ---: | ---: | ---: |
+| Existing scan-aware planner | 4/6 | 0/6 | 2/6 | 36.5 ms |
+| Motion-only feature transport | 3/6 | 0/6 | 2/6 | 45.6 ms |
+| Learned terrain forecasts | 4/6 | 0/6 | 2/6 | 56.6 ms |
+
+These development results show the same goal count for the learned forecast
+and the existing planner, with higher planning latency. They do not establish
+a navigation improvement.
+
+The job then failed during fresh-layout initialization, before a fresh control
+step. The upstream spawn sampler requires a 25 m border, which did not fit the
+original 30 m ground. The failure was reproduced with the actual sampler in a
+local regression test. Adding ground padding fixes that check without changing
+rock vertices, model weights, or controller scoring. Retry job
+`mars-rover-jepa-navigation-20261120-v2` completed the fresh trials and reused the
+saved development traces. Independent trace verification passed for all 36
+controller trials. See the
+[evaluation guide](../deploy/nautilus-jepa-navigation/README.md).
+
+### Completed fresh-layout comparison
+
+The frozen retry evaluated three paired starts on each of two new rock layouts.
+All controllers kept the native goal thresholds: distance below 0.18 m and
+heading error below 0.1 rad, with no collision.
+
+| Controller | Goals | Collisions | Stalled trials | Mean planning time |
+| :--- | ---: | ---: | ---: | ---: |
+| Existing scan-aware planner | 5/6 | 0/6 | 0/6 | 43.2 ms |
+| Motion-only feature transport | 6/6 | 0/6 | 0/6 | 55.0 ms |
+| Learned terrain forecasts | 6/6 | 0/6 | 0/6 | 67.5 ms |
+
+The one baseline failure ended 0.180314 m from its goal, close to the unchanged
+0.18 m threshold. The learned forecast matched transport on goal count and
+cost more time. These six cases do not establish a benefit from learned
+prediction. Mean path length across all fresh trials was 9.056 m for the
+baseline, 9.105 m for transport, and 9.039 m for JEPA. These averages include
+the failed baseline trial and do not establish a path efficiency gain.
+
+[Verified trial report](../notes/rover-navigation-v2-verification.json) contains
+all outcomes. The [frozen plan](../deploy/nautilus-jepa-navigation/test-plan.json)
+records checkpoint and source hashes. Raw traces and summaries remain on the
+shared volume at `/data/runs/rover-jepa-navigation/` under the v1 and v2 pod
+directories. These inspected layouts are development evidence for future work.
+Future final comparisons need new held-out layouts.
+
+### Goal-flag timing diagnostic
+
+The failed fresh baseline case entered both geometric goal tolerances at step
+224: distance 0.179446 m and heading error 0.086326 rad. Its native success flag
+was false. At step 225, the native flag became true, but distance had drifted to
+0.180314 m, outside the distance threshold. The original strict failure stays
+unchanged. This trace supports a timing/precision explanation for that single
+count difference, rather than improved obstacle handling.
+
+The verifier now reports geometric-goal steps and disagreement between geometry
+and the native flag as separate diagnostics. They do not change success
+thresholds or convert failures into successes. A regression test checks this
+case. The [recomputed diagnostic](../notes/rover-goal-timing-diagnostic.json)
+records the raw trace path and hash. Exact simulator update ordering is not
+independently instrumented; the controller change below is validated by paired
+physics replays.
+
+### Verified goal-hold replay
+
+The paired Isaac Sim replay completed on the inspected rock layout 501 with
+seeds 30–32. The original planner reached 2/3 strict goals. Sending zero commands
+after entering both goal tolerances reached 3/3. Both groups had zero collisions.
+In seed 30, terminal distance changed from 0.180314 m to 0.178301 m, with heading
+error 0.078181 rad. The success thresholds and native checks were unchanged.
+
+The same hold behavior is now the planner default. The development replay
+keeps an explicit legacy mode. Independent verification checks terminal
+geometry, native flags, paired starts, bounded commands, source identities,
+and actual hold counts. [Verified outcomes](../notes/rover-goal-hold-verification.json),
+[full summary](../notes/rover-goal-hold-summary.json), and the
+[replay guide](../deploy/nautilus-goal-hold/README.md) preserve the evidence.
+
+This corrects the observed arrival boundary case on known terrain. It does not
+establish unseen-layout performance or a learned forecast advantage. The older
+36-trial counts remain unchanged. The separate
+[predictor comparison](https://github.com/sameeerkashyap/mars-world-rover/pull/10)
+rejected the tested new AdaLN and DINO-WM predictors; neither replaces the
+current model.
+
 ## Reference planning
 
 The first Step 1 deployment failed during setup, before checkpoint loading,

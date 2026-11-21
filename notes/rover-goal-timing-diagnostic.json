@@ -1,0 +1,15 @@
+{
+  "seed": 30,
+  "controller": "model",
+  "verified_success": false,
+  "collision": false,
+  "path_length_m": 9.22134370624501,
+  "final_distance_m": 0.1803140758722201,
+  "stalled": false,
+  "forecast_scoring_calls": 0,
+  "geometric_goal_steps": 1,
+  "native_geometry_disagreement_steps": 2,
+  "planning_mean_s": 0.04107994451554987,
+  "trace_sha256": "928ac219775877c0255dccb9e3f10981f4a3955cc5cd73648da7e2089dfb5460",
+  "source_path": "/data/runs/rover-jepa-navigation/mars-rover-jepa-navigation-20261120-v2-wbxz5/fresh-test-rocks-501/mars-rover-jepa-navigation-20261120-v2-wbxz5/seed-30-model.csv"
+}
