@@ -1,0 +1,993 @@
+{
+  "verification": {
+    "pairs": 20,
+    "jepa_only_successes": 0,
+    "transport_only_successes": 1,
+    "success_rate_gain": -0.05,
+    "exact_two_sided_p": 1.0,
+    "added_collision_pairs": 0,
+    "jepa_mean_planning_s": 0.13013276630681272,
+    "promotion_passed": false,
+    "decision": "navigation_benefit_not_established"
+  },
+  "controllers": {
+    "transport": {
+      "successes": 16,
+      "collisions": 0,
+      "stalled_trials": 0,
+      "mean_path_length_m": 8.147027867095616,
+      "mean_planning_s": 0.10839667913833968,
+      "forecast_command_disagreements": 1293
+    },
+    "jepa": {
+      "successes": 15,
+      "collisions": 0,
+      "stalled_trials": 0,
+      "mean_path_length_m": 8.083618411263062,
+      "mean_planning_s": 0.13013276630681272,
+      "forecast_command_disagreements": 1146
+    }
+  },
+  "common_success_efficiency": {
+    "common_success_pairs": 15,
+    "excluded_pairs": 5,
+    "transport": {
+      "mean_path_m": 9.184469861793433,
+      "mean_simulation_seconds": 73.49333333333333
+    },
+    "jepa": {
+      "mean_path_m": 9.134585341699388,
+      "mean_simulation_seconds": 65.60000000000001
+    },
+    "jepa_path_change_fraction": -0.005431398964197198
+  },
+  "maximum_initial_state_difference": {
+    "position": 0.0,
+    "goal": 0.0,
+    "yaw": 0.0,
+    "heading_error_rad": 0.0,
+    "root_velocity": 0.0,
+    "joint_position": 0.0,
+    "joint_velocity": 0.0
+  },
+  "all_pairs_initial_state_exact": true,
+  "command_audit": {
+    "transport": {
+      "comparisons": 8568,
+      "disagreements": 1293,
+      "disagreement_fraction": 0.15091036414565825
+    },
+    "jepa": {
+      "comparisons": 7695,
+      "disagreements": 1146,
+      "disagreement_fraction": 0.14892787524366471
+    }
+  },
+  "per_command_latency": {
+    "transport": {
+      "mean_s": 0.10921431059543887,
+      "p95_s": 0.13420656398520803,
+      "max_s": 0.8736588709289208,
+      "steps": 9090
+    },
+    "jepa": {
+      "mean_s": 0.13049101554454534,
+      "p95_s": 0.15383669906295835,
+      "max_s": 3.0326634550001472,
+      "steps": 8209
+    }
+  },
+  "paired_outcomes": {
+    "both_succeeded": 15,
+    "both_failed": 4,
+    "jepa_only": 0,
+    "transport_only": 1
+  },
+  "archive": {
+    "archive_sha256": "917fef92ac94cd8e4924e46070c70dc8a1ab28a213be89d52aed2bf683089c5b",
+    "bytes": 3981065,
+    "verified_layout_meshes": 20,
+    "execution": {
+      "completed": false,
+      "finished_layouts": 20,
+      "exit_code": "1"
+    }
+  },
+  "controller_source_commit": "e1ba34c",
+  "analysis_checker_commit": "737f77c",
+  "analysis_checker_sha256": "83d71101bbba5bdee7ff07e67a6622fb3bfe4e4357f94b02e2a555ae1a15a774",
+  "image_digest": "docker.io/samkash/mars-runtime@sha256:6c2d59d37023f45e990aa7f8237c54e2c483cb376b48280bb4da7d892dd75fff",
+  "pairs": [
+    {
+      "terrain": "test-rocks-601",
+      "seed": 100,
+      "transport": {
+        "verified_success": true,
+        "native_success": true,
+        "collision": false,
+        "steps": 304,
+        "simulation_seconds": 60.800000000000004,
+        "path_length_m": 9.024484625741481,
+        "final_distance_m": 0.1692458689212799,
+        "planning_mean_s": 0.10017578361179116,
+        "planning_p95_s": 0.12448556852177715,
+        "forecast_comparison_steps": 264,
+        "forecast_command_disagreements": 37,
+        "final_heading_error_rad": -0.07575035095214844,
+        "termination": {
+          "time_limit": false,
+          "is_success": true,
+          "far_from_target": false,
+          "collision": false
+        }
+      },
+      "jepa": {
+        "verified_success": true,
+        "native_success": true,
+        "collision": false,
+        "steps": 318,
+        "simulation_seconds": 63.6,
+        "path_length_m": 9.053780392520984,
+        "final_distance_m": 0.1470566689968109,
+        "planning_mean_s": 0.12078174162998725,
+        "planning_p95_s": 0.13718543616123496,
+        "forecast_comparison_steps": 279,
+        "forecast_command_disagreements": 43,
+        "final_heading_error_rad": -0.08343362808227539,
+        "termination": {
+          "time_limit": false,
+          "is_success": true,
+          "far_from_target": false,
+          "collision": false
+        }
+      }
+    },
+    {
+      "terrain": "test-rocks-602",
+      "seed": 101,
+      "jepa": {
+        "verified_success": true,
+        "native_success": true,
+        "collision": false,
+        "steps": 298,
+        "simulation_seconds": 59.6,
+        "path_length_m": 9.037390055098824,
+        "final_distance_m": 0.1374352127313614,
+        "planning_mean_s": 0.13630453041745288,
+        "planning_p95_s": 0.15501346068922425,
+        "forecast_comparison_steps": 273,
+        "forecast_command_disagreements": 63,
+        "final_heading_error_rad": 0.05077004432678223,
+        "termination": {
+          "time_limit": false,
+          "is_success": true,
+          "far_from_target": false,
+          "collision": false
+        }
+      },
+      "transport": {
+        "verified_success": true,
+        "native_success": true,
+        "collision": false,
+        "steps": 291,
+        "simulation_seconds": 58.2,
+        "path_length_m": 9.021617959496885,
+        "final_distance_m": 0.1169363409280777,
+        "planning_mean_s": 0.10971541511682198,
+        "planning_p95_s": 0.12564534205012023,
+        "forecast_comparison_steps": 270,
+        "forecast_command_disagreements": 51,
+        "final_heading_error_rad": 0.07009196281433105,
+        "termination": {
+          "time_limit": false,
+          "is_success": true,
+          "far_from_target": false,
+          "collision": false
+        }
+      }
+    },
+    {
+      "terrain": "test-rocks-603",
+      "seed": 102,
+      "transport": {
+        "verified_success": true,
+        "native_success": true,
+        "collision": false,
+        "steps": 333,
+        "simulation_seconds": 66.60000000000001,
+        "path_length_m": 9.065562626985757,
+        "final_distance_m": 0.1580587774515152,
+        "planning_mean_s": 0.1076695999457828,
+        "planning_p95_s": 0.11659336320590227,
+        "forecast_comparison_steps": 314,
+        "forecast_command_disagreements": 87,
+        "final_heading_error_rad": -0.05927634239196777,
+        "termination": {
+          "time_limit": false,
+          "is_success": true,
+          "far_from_target": false,
+          "collision": false
+        }
+      },
+      "jepa": {
+        "verified_success": true,
+        "native_success": true,
+        "collision": false,
+        "steps": 325,
+        "simulation_seconds": 65.0,
+        "path_length_m": 9.077725113819442,
+        "final_distance_m": 0.11940863728523254,
+        "planning_mean_s": 0.12664658994915393,
+        "planning_p95_s": 0.1404241570038721,
+        "forecast_comparison_steps": 293,
+        "forecast_command_disagreements": 141,
+        "final_heading_error_rad": -0.043886661529541016,
+        "termination": {
+          "time_limit": false,
+          "is_success": true,
+          "far_from_target": false,
+          "collision": false
+        }
+      }
+    },
+    {
+      "terrain": "test-rocks-604",
+      "seed": 103,
+      "jepa": {
+        "verified_success": false,
+        "native_success": false,
+        "collision": false,
+        "steps": 745,
+        "simulation_seconds": 149.0,
+        "path_length_m": 7.100216646692769,
+        "final_distance_m": 3.2356884479522705,
+        "planning_mean_s": 0.12226408730111016,
+        "planning_p95_s": 0.12677960793953388,
+        "forecast_comparison_steps": 740,
+        "forecast_command_disagreements": 43,
+        "final_heading_error_rad": 0.01599907875061035,
+        "termination": {
+          "time_limit": true,
+          "is_success": false,
+          "far_from_target": false,
+          "collision": false
+        }
+      },
+      "transport": {
+        "verified_success": false,
+        "native_success": false,
+        "collision": false,
+        "steps": 745,
+        "simulation_seconds": 149.0,
+        "path_length_m": 7.145077199481468,
+        "final_distance_m": 3.2273073196411133,
+        "planning_mean_s": 0.10354171916858086,
+        "planning_p95_s": 0.1075589997926727,
+        "forecast_comparison_steps": 740,
+        "forecast_command_disagreements": 46,
+        "final_heading_error_rad": 0.03649187088012695,
+        "termination": {
+          "time_limit": true,
+          "is_success": false,
+          "far_from_target": false,
+          "collision": false
+        }
+      }
+    },
+    {
+      "terrain": "test-rocks-605",
+      "seed": 104,
+      "transport": {
+        "verified_success": true,
+        "native_success": true,
+        "collision": false,
+        "steps": 541,
+        "simulation_seconds": 108.2,
+        "path_length_m": 10.481180262680446,
+        "final_distance_m": 0.152630016207695,
+        "planning_mean_s": 0.10556289940308985,
+        "planning_p95_s": 0.11382536811288446,
+        "forecast_comparison_steps": 502,
+        "forecast_command_disagreements": 104,
+        "final_heading_error_rad": 0.09150838851928711,
+        "termination": {
+          "time_limit": false,
+          "is_success": true,
+          "far_from_target": false,
+          "collision": false
+        }
+      },
+      "jepa": {
+        "verified_success": true,
+        "native_success": true,
+        "collision": false,
+        "steps": 525,
+        "simulation_seconds": 105.0,
+        "path_length_m": 10.226504250467656,
+        "final_distance_m": 0.16108419001102448,
+        "planning_mean_s": 0.12634928609554966,
+        "planning_p95_s": 0.13724914712365716,
+        "forecast_comparison_steps": 489,
+        "forecast_command_disagreements": 127,
+        "final_heading_error_rad": 0.09710001945495605,
+        "termination": {
+          "time_limit": false,
+          "is_success": true,
+          "far_from_target": false,
+          "collision": false
+        }
+      }
+    },
+    {
+      "terrain": "test-rocks-606",
+      "seed": 105,
+      "jepa": {
+        "verified_success": true,
+        "native_success": true,
+        "collision": false,
+        "steps": 299,
+        "simulation_seconds": 59.800000000000004,
+        "path_length_m": 9.42209314942082,
+        "final_distance_m": 0.16645245254039764,
+        "planning_mean_s": 0.13687763477474713,
+        "planning_p95_s": 0.17115872679278243,
+        "forecast_comparison_steps": 285,
+        "forecast_command_disagreements": 56,
+        "final_heading_error_rad": -0.02640366554260254,
+        "termination": {
+          "time_limit": false,
+          "is_success": true,
+          "far_from_target": false,
+          "collision": false
+        }
+      },
+      "transport": {
+        "verified_success": true,
+        "native_success": true,
+        "collision": false,
+        "steps": 370,
+        "simulation_seconds": 74.0,
+        "path_length_m": 9.593714885842706,
+        "final_distance_m": 0.16906379163265228,
+        "planning_mean_s": 0.10290511132696191,
+        "planning_p95_s": 0.11120602344162762,
+        "forecast_comparison_steps": 352,
+        "forecast_command_disagreements": 64,
+        "final_heading_error_rad": -0.036005496978759766,
+        "termination": {
+          "time_limit": false,
+          "is_success": true,
+          "far_from_target": false,
+          "collision": false
+        }
+      }
+    },
+    {
+      "terrain": "test-rocks-607",
+      "seed": 106,
+      "transport": {
+        "verified_success": true,
+        "native_success": true,
+        "collision": false,
+        "steps": 277,
+        "simulation_seconds": 55.400000000000006,
+        "path_length_m": 8.963749261105413,
+        "final_distance_m": 0.15962746739387512,
+        "planning_mean_s": 0.09789049352430117,
+        "planning_p95_s": 0.11314288282301277,
+        "forecast_comparison_steps": 228,
+        "forecast_command_disagreements": 42,
+        "final_heading_error_rad": 0.09078431129455566,
+        "termination": {
+          "time_limit": false,
+          "is_success": true,
+          "far_from_target": false,
+          "collision": false
+        }
+      },
+      "jepa": {
+        "verified_success": true,
+        "native_success": true,
+        "collision": false,
+        "steps": 270,
+        "simulation_seconds": 54.0,
+        "path_length_m": 8.951232962976736,
+        "final_distance_m": 0.14311286807060242,
+        "planning_mean_s": 0.13474787402751476,
+        "planning_p95_s": 0.21619274779222905,
+        "forecast_comparison_steps": 220,
+        "forecast_command_disagreements": 37,
+        "final_heading_error_rad": 0.06267046928405762,
+        "termination": {
+          "time_limit": false,
+          "is_success": true,
+          "far_from_target": false,
+          "collision": false
+        }
+      }
+    },
+    {
+      "terrain": "test-rocks-608",
+      "seed": 107,
+      "jepa": {
+        "verified_success": true,
+        "native_success": true,
+        "collision": false,
+        "steps": 468,
+        "simulation_seconds": 93.60000000000001,
+        "path_length_m": 9.132078760526127,
+        "final_distance_m": 0.14830181002616882,
+        "planning_mean_s": 0.1487267687148116,
+        "planning_p95_s": 0.18601483653183093,
+        "forecast_comparison_steps": 452,
+        "forecast_command_disagreements": 40,
+        "final_heading_error_rad": 0.07512998580932617,
+        "termination": {
+          "time_limit": false,
+          "is_success": true,
+          "far_from_target": false,
+          "collision": false
+        }
+      },
+      "transport": {
+        "verified_success": true,
+        "native_success": true,
+        "collision": false,
+        "steps": 642,
+        "simulation_seconds": 128.4,
+        "path_length_m": 9.231926508175366,
+        "final_distance_m": 0.16340281069278717,
+        "planning_mean_s": 0.11190663999769071,
+        "planning_p95_s": 0.1253754534816835,
+        "forecast_comparison_steps": 625,
+        "forecast_command_disagreements": 109,
+        "final_heading_error_rad": 0.07222294807434082,
+        "termination": {
+          "time_limit": false,
+          "is_success": true,
+          "far_from_target": false,
+          "collision": false
+        }
+      }
+    },
+    {
+      "terrain": "test-rocks-609",
+      "seed": 108,
+      "transport": {
+        "verified_success": true,
+        "native_success": true,
+        "collision": false,
+        "steps": 466,
+        "simulation_seconds": 93.2,
+        "path_length_m": 9.161597020349992,
+        "final_distance_m": 0.1486935168504715,
+        "planning_mean_s": 0.10341483833844865,
+        "planning_p95_s": 0.121589455724461,
+        "forecast_comparison_steps": 421,
+        "forecast_command_disagreements": 113,
+        "final_heading_error_rad": -0.08384203910827637,
+        "termination": {
+          "time_limit": false,
+          "is_success": true,
+          "far_from_target": false,
+          "collision": false
+        }
+      },
+      "jepa": {
+        "verified_success": true,
+        "native_success": true,
+        "collision": false,
+        "steps": 330,
+        "simulation_seconds": 66.0,
+        "path_length_m": 9.066547206694699,
+        "final_distance_m": 0.15015749633312225,
+        "planning_mean_s": 0.12133069436108186,
+        "planning_p95_s": 0.14731427615624854,
+        "forecast_comparison_steps": 286,
+        "forecast_command_disagreements": 56,
+        "final_heading_error_rad": -0.07868409156799316,
+        "termination": {
+          "time_limit": false,
+          "is_success": true,
+          "far_from_target": false,
+          "collision": false
+        }
+      }
+    },
+    {
+      "terrain": "test-rocks-610",
+      "seed": 109,
+      "jepa": {
+        "verified_success": true,
+        "native_success": true,
+        "collision": false,
+        "steps": 292,
+        "simulation_seconds": 58.400000000000006,
+        "path_length_m": 9.00427705273577,
+        "final_distance_m": 0.1360061913728714,
+        "planning_mean_s": 0.11978276362100437,
+        "planning_p95_s": 0.12961523089907132,
+        "forecast_comparison_steps": 244,
+        "forecast_command_disagreements": 14,
+        "final_heading_error_rad": 0.058255672454833984,
+        "termination": {
+          "time_limit": false,
+          "is_success": true,
+          "far_from_target": false,
+          "collision": false
+        }
+      },
+      "transport": {
+        "verified_success": true,
+        "native_success": true,
+        "collision": false,
+        "steps": 291,
+        "simulation_seconds": 58.2,
+        "path_length_m": 9.01314658838497,
+        "final_distance_m": 0.13945722579956055,
+        "planning_mean_s": 0.10158844373254522,
+        "planning_p95_s": 0.1164364954456687,
+        "forecast_comparison_steps": 243,
+        "forecast_command_disagreements": 34,
+        "final_heading_error_rad": 0.06610774993896484,
+        "termination": {
+          "time_limit": false,
+          "is_success": true,
+          "far_from_target": false,
+          "collision": false
+        }
+      }
+    },
+    {
+      "terrain": "test-rocks-611",
+      "seed": 110,
+      "transport": {
+        "verified_success": false,
+        "native_success": false,
+        "collision": false,
+        "steps": 745,
+        "simulation_seconds": 149.0,
+        "path_length_m": 1.6699214166239122,
+        "final_distance_m": 8.03639030456543,
+        "planning_mean_s": 0.11823514711077407,
+        "planning_p95_s": 0.15099040844943373,
+        "forecast_comparison_steps": 740,
+        "forecast_command_disagreements": 1,
+        "final_heading_error_rad": 1.7029716968536377,
+        "termination": {
+          "time_limit": true,
+          "is_success": false,
+          "far_from_target": false,
+          "collision": false
+        }
+      },
+      "jepa": {
+        "verified_success": false,
+        "native_success": false,
+        "collision": false,
+        "steps": 745,
+        "simulation_seconds": 149.0,
+        "path_length_m": 1.4673684391674031,
+        "final_distance_m": 8.114514350891113,
+        "planning_mean_s": 0.13732164731458604,
+        "planning_p95_s": 0.15156276882626116,
+        "forecast_comparison_steps": 740,
+        "forecast_command_disagreements": 1,
+        "final_heading_error_rad": 1.7145979404449463,
+        "termination": {
+          "time_limit": true,
+          "is_success": false,
+          "far_from_target": false,
+          "collision": false
+        }
+      }
+    },
+    {
+      "terrain": "test-rocks-612",
+      "seed": 111,
+      "jepa": {
+        "verified_success": true,
+        "native_success": true,
+        "collision": false,
+        "steps": 261,
+        "simulation_seconds": 52.2,
+        "path_length_m": 9.012258941317725,
+        "final_distance_m": 0.14411711692810059,
+        "planning_mean_s": 0.13493139785446825,
+        "planning_p95_s": 0.14121513604186475,
+        "forecast_comparison_steps": 244,
+        "forecast_command_disagreements": 30,
+        "final_heading_error_rad": 0.05981040000915527,
+        "termination": {
+          "time_limit": false,
+          "is_success": true,
+          "far_from_target": false,
+          "collision": false
+        }
+      },
+      "transport": {
+        "verified_success": true,
+        "native_success": true,
+        "collision": false,
+        "steps": 254,
+        "simulation_seconds": 50.800000000000004,
+        "path_length_m": 8.999892301291373,
+        "final_distance_m": 0.14011307060718536,
+        "planning_mean_s": 0.1087821542833543,
+        "planning_p95_s": 0.12694441061466932,
+        "forecast_comparison_steps": 237,
+        "forecast_command_disagreements": 22,
+        "final_heading_error_rad": 0.08694076538085938,
+        "termination": {
+          "time_limit": false,
+          "is_success": true,
+          "far_from_target": false,
+          "collision": false
+        }
+      }
+    },
+    {
+      "terrain": "test-rocks-613",
+      "seed": 112,
+      "transport": {
+        "verified_success": true,
+        "native_success": true,
+        "collision": false,
+        "steps": 598,
+        "simulation_seconds": 119.60000000000001,
+        "path_length_m": 9.239038035087816,
+        "final_distance_m": 0.1615319550037384,
+        "planning_mean_s": 0.1075861658278018,
+        "planning_p95_s": 0.11247372379875742,
+        "forecast_comparison_steps": 585,
+        "forecast_command_disagreements": 185,
+        "final_heading_error_rad": 0.05230212211608887,
+        "termination": {
+          "time_limit": false,
+          "is_success": true,
+          "far_from_target": false,
+          "collision": false
+        }
+      },
+      "jepa": {
+        "verified_success": false,
+        "native_success": true,
+        "collision": false,
+        "steps": 309,
+        "simulation_seconds": 61.800000000000004,
+        "path_length_m": 9.001432471530672,
+        "final_distance_m": 0.1802847683429718,
+        "planning_mean_s": 0.12864298350102354,
+        "planning_p95_s": 0.13535887401085347,
+        "forecast_comparison_steps": 303,
+        "forecast_command_disagreements": 98,
+        "final_heading_error_rad": 0.08267402648925781,
+        "termination": {
+          "time_limit": false,
+          "is_success": true,
+          "far_from_target": false,
+          "collision": false
+        }
+      }
+    },
+    {
+      "terrain": "test-rocks-614",
+      "seed": 113,
+      "jepa": {
+        "verified_success": false,
+        "native_success": false,
+        "collision": false,
+        "steps": 745,
+        "simulation_seconds": 149.0,
+        "path_length_m": 1.396351024470659,
+        "final_distance_m": 8.761691093444824,
+        "planning_mean_s": 0.13381693173659304,
+        "planning_p95_s": 0.14776730616576966,
+        "forecast_comparison_steps": 740,
+        "forecast_command_disagreements": 0,
+        "final_heading_error_rad": 2.782925844192505,
+        "termination": {
+          "time_limit": true,
+          "is_success": false,
+          "far_from_target": false,
+          "collision": false
+        }
+      },
+      "transport": {
+        "verified_success": false,
+        "native_success": false,
+        "collision": false,
+        "steps": 745,
+        "simulation_seconds": 149.0,
+        "path_length_m": 1.396351024470659,
+        "final_distance_m": 8.761691093444824,
+        "planning_mean_s": 0.10986902747497013,
+        "planning_p95_s": 0.12098345295526088,
+        "forecast_comparison_steps": 740,
+        "forecast_command_disagreements": 0,
+        "final_heading_error_rad": 2.782925844192505,
+        "termination": {
+          "time_limit": true,
+          "is_success": false,
+          "far_from_target": false,
+          "collision": false
+        }
+      }
+    },
+    {
+      "terrain": "test-rocks-615",
+      "seed": 114,
+      "transport": {
+        "verified_success": false,
+        "native_success": false,
+        "collision": false,
+        "steps": 745,
+        "simulation_seconds": 149.0,
+        "path_length_m": 5.723121739346998,
+        "final_distance_m": 4.020073413848877,
+        "planning_mean_s": 0.11534764303532023,
+        "planning_p95_s": 0.14923137002624567,
+        "forecast_comparison_steps": 740,
+        "forecast_command_disagreements": 35,
+        "final_heading_error_rad": 1.8934481143951416,
+        "termination": {
+          "time_limit": true,
+          "is_success": false,
+          "far_from_target": false,
+          "collision": false
+        }
+      },
+      "jepa": {
+        "verified_success": false,
+        "native_success": false,
+        "collision": false,
+        "steps": 745,
+        "simulation_seconds": 149.0,
+        "path_length_m": 5.688219517908923,
+        "final_distance_m": 3.9771134853363037,
+        "planning_mean_s": 0.12991848370691625,
+        "planning_p95_s": 0.16180733977816997,
+        "forecast_comparison_steps": 740,
+        "forecast_command_disagreements": 22,
+        "final_heading_error_rad": 1.9300014972686768,
+        "termination": {
+          "time_limit": true,
+          "is_success": false,
+          "far_from_target": false,
+          "collision": false
+        }
+      }
+    },
+    {
+      "terrain": "test-rocks-616",
+      "seed": 115,
+      "jepa": {
+        "verified_success": true,
+        "native_success": true,
+        "collision": false,
+        "steps": 322,
+        "simulation_seconds": 64.4,
+        "path_length_m": 9.050506430695922,
+        "final_distance_m": 0.1510842889547348,
+        "planning_mean_s": 0.1281360188999462,
+        "planning_p95_s": 0.1613183630106505,
+        "forecast_comparison_steps": 273,
+        "forecast_command_disagreements": 142,
+        "final_heading_error_rad": -0.06132841110229492,
+        "termination": {
+          "time_limit": false,
+          "is_success": true,
+          "far_from_target": false,
+          "collision": false
+        }
+      },
+      "transport": {
+        "verified_success": true,
+        "native_success": true,
+        "collision": false,
+        "steps": 315,
+        "simulation_seconds": 63.0,
+        "path_length_m": 9.011415510804023,
+        "final_distance_m": 0.14564092457294464,
+        "planning_mean_s": 0.13075495945984528,
+        "planning_p95_s": 0.20308001688681543,
+        "forecast_comparison_steps": 269,
+        "forecast_command_disagreements": 95,
+        "final_heading_error_rad": -0.09013509750366211,
+        "termination": {
+          "time_limit": false,
+          "is_success": true,
+          "far_from_target": false,
+          "collision": false
+        }
+      }
+    },
+    {
+      "terrain": "test-rocks-617",
+      "seed": 116,
+      "transport": {
+        "verified_success": true,
+        "native_success": true,
+        "collision": false,
+        "steps": 304,
+        "simulation_seconds": 60.800000000000004,
+        "path_length_m": 9.038117775417591,
+        "final_distance_m": 0.13813257217407227,
+        "planning_mean_s": 0.10056363067767386,
+        "planning_p95_s": 0.11161365716834552,
+        "forecast_comparison_steps": 264,
+        "forecast_command_disagreements": 35,
+        "final_heading_error_rad": 0.06409049034118652,
+        "termination": {
+          "time_limit": false,
+          "is_success": true,
+          "far_from_target": false,
+          "collision": false
+        }
+      },
+      "jepa": {
+        "verified_success": true,
+        "native_success": true,
+        "collision": false,
+        "steps": 293,
+        "simulation_seconds": 58.6,
+        "path_length_m": 9.05540936527605,
+        "final_distance_m": 0.14685146510601044,
+        "planning_mean_s": 0.11824364678452662,
+        "planning_p95_s": 0.13503725160844623,
+        "forecast_comparison_steps": 254,
+        "forecast_command_disagreements": 39,
+        "final_heading_error_rad": 0.0886540412902832,
+        "termination": {
+          "time_limit": false,
+          "is_success": true,
+          "far_from_target": false,
+          "collision": false
+        }
+      }
+    },
+    {
+      "terrain": "test-rocks-618",
+      "seed": 117,
+      "jepa": {
+        "verified_success": true,
+        "native_success": true,
+        "collision": false,
+        "steps": 323,
+        "simulation_seconds": 64.60000000000001,
+        "path_length_m": 8.89426960718379,
+        "final_distance_m": 0.17758023738861084,
+        "planning_mean_s": 0.14048380106428043,
+        "planning_p95_s": 0.1426137793925591,
+        "forecast_comparison_steps": 317,
+        "forecast_command_disagreements": 120,
+        "final_heading_error_rad": 0.004784345626831055,
+        "termination": {
+          "time_limit": false,
+          "is_success": true,
+          "far_from_target": false,
+          "collision": false
+        }
+      },
+      "transport": {
+        "verified_success": true,
+        "native_success": true,
+        "collision": false,
+        "steps": 528,
+        "simulation_seconds": 105.60000000000001,
+        "path_length_m": 9.169571564899629,
+        "final_distance_m": 0.15457405149936676,
+        "planning_mean_s": 0.1167089063788863,
+        "planning_p95_s": 0.16904406730318441,
+        "forecast_comparison_steps": 508,
+        "forecast_command_disagreements": 154,
+        "final_heading_error_rad": 0.08049631118774414,
+        "termination": {
+          "time_limit": false,
+          "is_success": true,
+          "far_from_target": false,
+          "collision": false
+        }
+      }
+    },
+    {
+      "terrain": "test-rocks-619",
+      "seed": 118,
+      "transport": {
+        "verified_success": true,
+        "native_success": true,
+        "collision": false,
+        "steps": 303,
+        "simulation_seconds": 60.6,
+        "path_length_m": 9.014789354539017,
+        "final_distance_m": 0.12522414326667786,
+        "planning_mean_s": 0.10624473085496329,
+        "planning_p95_s": 0.11366534510161727,
+        "forecast_comparison_steps": 282,
+        "forecast_command_disagreements": 33,
+        "final_heading_error_rad": 0.06840229034423828,
+        "termination": {
+          "time_limit": false,
+          "is_success": true,
+          "far_from_target": false,
+          "collision": false
+        }
+      },
+      "jepa": {
+        "verified_success": true,
+        "native_success": true,
+        "collision": false,
+        "steps": 306,
+        "simulation_seconds": 61.2,
+        "path_length_m": 9.017836278138036,
+        "final_distance_m": 0.12080587446689606,
+        "planning_mean_s": 0.12482414779434395,
+        "planning_p95_s": 0.14012313302373514,
+        "forecast_comparison_steps": 284,
+        "forecast_command_disagreements": 40,
+        "final_heading_error_rad": 0.05418896675109863,
+        "termination": {
+          "time_limit": false,
+          "is_success": true,
+          "far_from_target": false,
+          "collision": false
+        }
+      }
+    },
+    {
+      "terrain": "test-rocks-620",
+      "seed": 119,
+      "jepa": {
+        "verified_success": true,
+        "native_success": true,
+        "collision": false,
+        "steps": 290,
+        "simulation_seconds": 58.0,
+        "path_length_m": 9.01687055861824,
+        "final_distance_m": 0.15127700567245483,
+        "planning_mean_s": 0.13252429658715645,
+        "planning_p95_s": 0.16509274660493248,
+        "forecast_comparison_steps": 239,
+        "forecast_command_disagreements": 34,
+        "final_heading_error_rad": 0.08203434944152832,
+        "termination": {
+          "time_limit": false,
+          "is_success": true,
+          "far_from_target": false,
+          "collision": false
+        }
+      },
+      "transport": {
+        "verified_success": true,
+        "native_success": true,
+        "collision": false,
+        "steps": 293,
+        "simulation_seconds": 58.6,
+        "path_length_m": 8.976281681186824,
+        "final_distance_m": 0.1645338535308838,
+        "planning_mean_s": 0.10947027349719021,
+        "planning_p95_s": 0.1403448887867853,
+        "forecast_comparison_steps": 244,
+        "forecast_command_disagreements": 46,
+        "final_heading_error_rad": 0.09129738807678223,
+        "termination": {
+          "time_limit": false,
+          "is_success": true,
+          "far_from_target": false,
+          "collision": false
+        }
+      }
+    }
+  ],
+  "maximum_initial_scan_difference": 0.0,
+  "runtime": {
+    "gpu": "NVIDIA A10",
+    "driver": "615.71.09",
+    "torch": "2.10.0+cu128",
+    "torchvision": "0.25.0+cu128",
+    "numpy": "2.3.1",
+    "isaacsim": "6.0.1.0",
+    "h5py": "3.15.1",
+    "einops": "0.8.1"
+  }
+}
