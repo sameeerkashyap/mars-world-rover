@@ -84,7 +84,17 @@ class NavigationRecorderCfg(RecorderManagerBaseCfg):
     telemetry = RecorderTermCfg(class_type=NavigationSnapshot)
 
 
-def run_trial(env, model, seed, controller, output, forecast=None):
+def audit_forecast_action(forecast, model, state, scan, align_heading, hold_reached_goal):
+    mode, calls, candidates = forecast.mode, forecast.scoring_calls, forecast.scored_candidates
+    try:
+        forecast.mode = "transport" if mode == "jepa" else "jepa"
+        return plan_action(model, state, align_heading=align_heading, height_scan=scan,
+                           terrain_cost=forecast.costs, hold_reached_goal=hold_reached_goal)
+    finally:
+        forecast.mode, forecast.scoring_calls, forecast.scored_candidates = mode, calls, candidates
+
+
+def run_trial(env, model, seed, controller, output, forecast=None, audit_forecasts=False):
     env.reset(seed=seed)
     use_forecast = controller in ("jepa", "transport")
     hold_reached_goal = controller != "forward" and (controller == "model-hold" or not args.replay_plan)
@@ -96,6 +106,11 @@ def run_trial(env, model, seed, controller, output, forecast=None):
         if bool((terminated | truncated)[0]):
             raise RuntimeError("A settling step terminated the episode before control")
     initial = env.unwrapped.navigation_sample
+    if audit_forecasts:
+        robot = env.unwrapped.scene["robot"]
+        initial = {**initial, "root_velocity": robot.data.root_link_vel_w.torch[0].detach().cpu().tolist(),
+                   "joint_position": robot.data.joint_pos.torch[0].detach().cpu().tolist(),
+                   "joint_velocity": robot.data.joint_vel.torch[0].detach().cpu().tolist()}
     samples = [initial]
     path_length = 0.0
     reward_sum = 0.0
@@ -107,11 +122,13 @@ def run_trial(env, model, seed, controller, output, forecast=None):
     previous_action = None
     ready_steps = 0
     goal_hold_steps = 0
+    comparison_steps = command_disagreements = 0
     result_path = output / f"seed-{seed}-{controller}"
     with result_path.with_suffix(".csv").open("w") as handle:
         writer = csv.writer(handle)
         writer.writerow(["step", "time_s", "x_m", "y_m", "z_m", "yaw_rad", "goal_x_m", "goal_y_m",
-                         "distance_m", "heading_error_rad", "speed_command", "turn_command", "native_success", "collision", "planning_s", "forecast_ready", "goal_hold"])
+                         "distance_m", "heading_error_rad", "speed_command", "turn_command", "native_success", "collision", "planning_s", "forecast_ready", "goal_hold",
+                         "alternate_speed_command", "alternate_turn_command"])
         for step in range(args.steps):
             state = obs["policy"][:, :5].detach().cpu()
             distance = float(state[0, 2]) / 0.11
@@ -128,6 +145,7 @@ def run_trial(env, model, seed, controller, output, forecast=None):
                 forecast.observe(obs["policy"][0].detach(), previous_action)
             ready = use_forecast and forecast.ready
             ready_steps += int(ready)
+            calls_before = forecast.scoring_calls if use_forecast else 0
             if controller == "forward":
                 action = torch.tensor([[0.65, 0.0]])
             else:
@@ -139,6 +157,13 @@ def run_trial(env, model, seed, controller, output, forecast=None):
                 torch.cuda.synchronize(forecast.device)
             planning_seconds = time.perf_counter() - start_planning
             planning_times.append(planning_seconds)
+            alternate = None
+            if audit_forecasts and use_forecast and forecast.scoring_calls > calls_before:
+                alternate = audit_forecast_action(forecast, model, state, scan, align_heading, hold_reached_goal)
+                if forecast.device.type == "cuda":
+                    torch.cuda.synchronize(forecast.device)
+                comparison_steps += 1
+                command_disagreements += int(not torch.equal(action, alternate))
             stopped = int(bool((action == 0).all()))
             stopped_steps += stopped
             consecutive_stops = consecutive_stops + 1 if stopped else 0
@@ -156,7 +181,8 @@ def run_trial(env, model, seed, controller, output, forecast=None):
             term = sample["termination"]
             writer.writerow([step + 1, (step + 1) * env.unwrapped.step_dt, *sample["position"], sample["yaw"],
                              *sample["goal"][:2], sample["distance_m"], sample["heading_error_rad"],
-                             *action[0].tolist(), term["is_success"], term["collision"], planning_seconds, ready, holding])
+                             *action[0].tolist(), term["is_success"], term["collision"], planning_seconds, ready, holding,
+                             *(alternate[0].tolist() if alternate is not None else ["", ""])])
             if step % 50 == 0:
                 handle.flush()
                 print(f"seed={seed} controller={controller} step={step + 1} distance={sample['distance_m']:.3f}m heading={sample['heading_error_rad']:.3f}rad", flush=True)
@@ -179,6 +205,8 @@ def run_trial(env, model, seed, controller, output, forecast=None):
         "stalled": longest_stop >= 25, "forecast_ready_steps": ready_steps,
         "goal_hold_steps": goal_hold_steps,
         "hold_reached_goal": hold_reached_goal,
+        "forecast_comparison_steps": comparison_steps,
+        "forecast_command_disagreements": command_disagreements,
         "planning_mean_s": float(np.mean(planning_times)), "planning_p95_s": float(np.percentile(planning_times, 95)),
         "forecast_scoring_calls": forecast.scoring_calls if use_forecast else 0,
         "forecast_scored_candidates": forecast.scored_candidates if use_forecast else 0,
@@ -214,6 +242,8 @@ def main():
             if hashlib.sha256(source.read_bytes()).hexdigest() != plan["sha256"][name]:
                 raise ValueError(f"Frozen navigation input changed: {name}")
         if not args.replay_plan:
+            if plan["controllers"] not in (["model", "transport", "jepa"], ["transport", "jepa"]):
+                raise ValueError("Forecast plans require the paired transport and JEPA controls")
             forecast = load_forecast(args.jepa_run, args.terrain_checkpoint, args.encoder_source,
                                      args.predictor_source, plan, args.device)
     output = args.output / os.environ.get("HOSTNAME", "local")
@@ -251,8 +281,10 @@ def main():
     cfg.events.reset_joints = EventTermCfg(func=mdp.reset_joints_by_scale, mode="reset",
                                          params={"position_range": (1.0, 1.0), "velocity_range": (0.0, 0.0)})
     config = {"task": args.task, "terrain": args.terrain, "seeds": args.seeds, "max_steps": args.steps,
-              "controllers": plan["controllers"] if args.replay_plan else
-                             ["model", "transport", "jepa"] if forecast is not None else ["model", "goal-only", "forward"],
+              "controllers": plan["controllers"] if plan is not None else ["model", "goal-only", "forward"],
+              "controller_order": {str(seed): list(reversed(plan["controllers"])) if
+                                   plan.get("counterbalance_order") and seed % 2 else plan["controllers"]
+                                   for seed in args.seeds} if plan else None,
               "development_replay": bool(args.replay_plan),
               "frozen_test_plan": plan, "phase": args.phase,
               "forecast_scoring": {"weight": 0.25, "max_seconds": 5, "patches": "central 2x2 maximum", "alignment": "scan only"},
@@ -278,8 +310,10 @@ def main():
         with torch.inference_mode():
             for seed in args.seeds:
                 pair = []
-                for controller in config["controllers"]:
-                    result = run_trial(env, model, seed, controller, output, forecast)
+                controllers = config["controller_order"][str(seed)] if plan else config["controllers"]
+                for controller in controllers:
+                    result = run_trial(env, model, seed, controller, output, forecast,
+                                       audit_forecasts=bool(plan and plan.get("audit_forecasts")))
                     results.append(result)
                     pair.append(result)
                 for comparison in pair[1:]:
