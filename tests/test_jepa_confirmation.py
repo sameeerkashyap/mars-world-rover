@@ -101,9 +101,12 @@ class ConfirmationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             (root / "source").mkdir()
-            (root / "source/test-plan.json").write_text(json.dumps(plan))
             for name, relative in deploy.SOURCES.items():
                 shutil.copyfile(ROOT / relative, root / "source" / name)
+                plan["all_source_sha256"][name] = hashlib.sha256((root / "source" / name).read_bytes()).hexdigest()
+            for name, key in source_names.items():
+                plan["sha256"][key] = plan["all_source_sha256"][name]
+            (root / "source/test-plan.json").write_text(json.dumps(plan))
             hidden = root / "source/..data"
             hidden.mkdir()
             shutil.copyfile(root / "source/rover_navigate.py", hidden / "rover_navigate.py")
