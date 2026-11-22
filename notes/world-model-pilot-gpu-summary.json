@@ -1,0 +1,95 @@
+{
+  "dino": {
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "passed": 0,
+    "median_mse": [
+      0.8555488586425781,
+      1.837537169456482
+    ],
+    "median_center_mse": [
+      0.7425107955932617,
+      1.7159719467163086
+    ],
+    "normalized_validation_training_objective": [
+      0.44526150822639465,
+      0.43774592876434326,
+      0.43808794021606445
+    ]
+  },
+  "adaln": {
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "passed": 0,
+    "median_mse": [
+      1.0979716777801514,
+      1.9798542261123657
+    ],
+    "median_center_mse": [
+      0.9916834235191345,
+      1.835988163948059
+    ],
+    "normalized_validation_training_objective": [
+      0.5213754177093506,
+      0.5073561668395996,
+      0.5225693583488464
+    ]
+  },
+  "controls": {
+    "copy": [
+      0.8952810764312744,
+      2.212705612182617
+    ],
+    "transport": [
+      0.7767308354377747,
+      1.6401609182357788
+    ],
+    "current_residual": [
+      0.7938774228096008,
+      1.7044154405593872
+    ],
+    "current_transport": [
+      0.8091974258422852,
+      1.76634681224823
+    ]
+  },
+  "center_controls": {
+    "copy": [
+      0.7394635081291199,
+      1.9041506052017212
+    ],
+    "transport": [
+      0.6521954536437988,
+      1.4466156959533691
+    ],
+    "current_residual": [
+      0.6555090546607971,
+      1.4580076932907104
+    ],
+    "current_transport": [
+      0.6707678437232971,
+      1.5307323932647705
+    ]
+  },
+  "max_cpu_gpu_error_difference": 2.5033950805664062e-06,
+  "checkpoint_transfer_verified": true,
+  "training_hardware": "NVIDIA A10",
+  "training_torch": "2.10.0+cu128",
+  "evaluation_device": "cpu",
+  "evaluation_torch": "2.10.0",
+  "training_windows": 256,
+  "validation_windows": 128,
+  "phase": "development",
+  "motion_prior_state_comparison": {
+    "same_keys": true,
+    "bitwise_equal": false,
+    "max_absolute_tensor_difference": 1.7881393432617188e-07,
+    "interpretation": "Separate checkpoints with numerically near-identical motion priors; full-feature versus PCA transport also differ in treatment of the unmodelled feature subspace."
+  }
+}

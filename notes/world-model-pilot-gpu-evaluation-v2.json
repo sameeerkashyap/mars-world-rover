@@ -1,0 +1,1468 @@
+{
+  "schema": "rover-world-model-evaluation-v2",
+  "arms": [
+    {
+      "architecture": "dino",
+      "seed": 0,
+      "epoch": 11,
+      "checkpoint_sha256": "693ddcfe1e3bb985f5c1eeff8cb0e5c409bcc67c3b3c898044e61584cd48dc58",
+      "validation": {
+        "model": [
+          0.8668333292007446,
+          1.837537169456482
+        ],
+        "copy": [
+          0.8952810764312744,
+          2.212705612182617
+        ],
+        "transport": [
+          0.7767308354377747,
+          1.6401609182357788
+        ],
+        "shuffled": [
+          0.8677342534065247,
+          1.8383986949920654
+        ],
+        "current_residual": [
+          0.7938774228096008,
+          1.7044154405593872
+        ],
+        "current_transport": [
+          0.8091974258422852,
+          1.76634681224823
+        ],
+        "normalized_training_objective": 0.44526150822639465,
+        "near_rover": {
+          "model": [
+            0.7488927245140076,
+            1.7159719467163086
+          ],
+          "copy": [
+            0.7394635081291199,
+            1.9041506052017212
+          ],
+          "transport": [
+            0.6521954536437988,
+            1.4466156959533691
+          ],
+          "shuffled": [
+            0.7507118582725525,
+            1.721104621887207
+          ],
+          "current_residual": [
+            0.6555090546607971,
+            1.4580076932907104
+          ],
+          "current_transport": [
+            0.6707678437232971,
+            1.5307323932647705
+          ]
+        },
+        "by_episode": {
+          "data/rover/mars-rover-variation-1/rover_seed_1.hdf5:demo_0": {
+            "model": [
+              0.9473085403442383,
+              1.8910470008850098
+            ],
+            "copy": [
+              0.981048047542572,
+              2.3059263229370117
+            ],
+            "transport": [
+              0.8208953142166138,
+              1.7014530897140503
+            ],
+            "shuffled": [
+              0.9482389092445374,
+              1.9013508558273315
+            ],
+            "current_residual": [
+              0.8428756594657898,
+              1.7760448455810547
+            ],
+            "current_transport": [
+              0.858391523361206,
+              1.8319270610809326
+            ]
+          },
+          "data/rover/mars-rover-variation-1/rover_seed_1.hdf5:demo_1": {
+            "model": [
+              0.838092565536499,
+              1.8408339023590088
+            ],
+            "copy": [
+              0.8605805039405823,
+              2.2266292572021484
+            ],
+            "transport": [
+              0.7582017779350281,
+              1.6724069118499756
+            ],
+            "shuffled": [
+              0.8396389484405518,
+              1.8414840698242188
+            ],
+            "current_residual": [
+              0.7709788084030151,
+              1.7119213342666626
+            ],
+            "current_transport": [
+              0.787348210811615,
+              1.797272801399231
+            ]
+          },
+          "data/rover/mars-rover-variation-1/rover_seed_1.hdf5:demo_2": {
+            "model": [
+              0.8339855670928955,
+              1.7785619497299194
+            ],
+            "copy": [
+              0.8670175671577454,
+              2.0964088439941406
+            ],
+            "transport": [
+              0.7632712125778198,
+              1.5254310369491577
+            ],
+            "shuffled": [
+              0.8337876200675964,
+              1.7703336477279663
+            ],
+            "current_residual": [
+              0.7828258872032166,
+              1.6203469038009644
+            ],
+            "current_transport": [
+              0.796211302280426,
+              1.6495165824890137
+            ]
+          }
+        },
+        "by_layout": {
+          "debug": {
+            "model": [
+              0.8668333292007446,
+              1.837537169456482
+            ],
+            "copy": [
+              0.8952810764312744,
+              2.212705612182617
+            ],
+            "transport": [
+              0.7767308354377747,
+              1.6401609182357788
+            ],
+            "shuffled": [
+              0.8677342534065247,
+              1.8383986949920654
+            ],
+            "current_residual": [
+              0.7938774228096008,
+              1.7044154405593872
+            ],
+            "current_transport": [
+              0.8091974258422852,
+              1.76634681224823
+            ]
+          }
+        },
+        "selection_score": 1.1181708876143839,
+        "gain_over_transport": [
+          -0.11600221035667668,
+          -0.12033956487209108
+        ],
+        "action_shuffle_increase": [
+          0.001039328063920486,
+          0.00046884795034563
+        ]
+      },
+      "candidate_gate": false
+    },
+    {
+      "architecture": "adaln",
+      "seed": 0,
+      "epoch": 12,
+      "checkpoint_sha256": "b2215dc97538e72e586737863bd2377acc1e43aee63d7124deb83823df850f42",
+      "validation": {
+        "model": [
+          1.1041865348815918,
+          1.9798542261123657
+        ],
+        "copy": [
+          0.8952810764312744,
+          2.212705612182617
+        ],
+        "transport": [
+          0.7767308354377747,
+          1.6401609182357788
+        ],
+        "shuffled": [
+          1.1170423030853271,
+          1.9846312999725342
+        ],
+        "current_residual": [
+          0.7938774228096008,
+          1.7044154405593872
+        ],
+        "current_transport": [
+          0.8091974258422852,
+          1.76634681224823
+        ],
+        "normalized_training_objective": 0.5213754177093506,
+        "near_rover": {
+          "model": [
+            0.998050332069397,
+            1.835988163948059
+          ],
+          "copy": [
+            0.7394635081291199,
+            1.9041506052017212
+          ],
+          "transport": [
+            0.6521954536437988,
+            1.4466156959533691
+          ],
+          "shuffled": [
+            1.0089157819747925,
+            1.8419188261032104
+          ],
+          "current_residual": [
+            0.6555090546607971,
+            1.4580076932907104
+          ],
+          "current_transport": [
+            0.6707678437232971,
+            1.5307323932647705
+          ]
+        },
+        "by_episode": {
+          "data/rover/mars-rover-variation-1/rover_seed_1.hdf5:demo_0": {
+            "model": [
+              1.1847935914993286,
+              2.0277810096740723
+            ],
+            "copy": [
+              0.981048047542572,
+              2.3059263229370117
+            ],
+            "transport": [
+              0.8208953142166138,
+              1.7014530897140503
+            ],
+            "shuffled": [
+              1.1991990804672241,
+              2.039719820022583
+            ],
+            "current_residual": [
+              0.8428756594657898,
+              1.7760448455810547
+            ],
+            "current_transport": [
+              0.858391523361206,
+              1.8319270610809326
+            ]
+          },
+          "data/rover/mars-rover-variation-1/rover_seed_1.hdf5:demo_1": {
+            "model": [
+              1.0806998014450073,
+              2.0157876014709473
+            ],
+            "copy": [
+              0.8605805039405823,
+              2.2266292572021484
+            ],
+            "transport": [
+              0.7582017779350281,
+              1.6724069118499756
+            ],
+            "shuffled": [
+              1.0952223539352417,
+              2.012238025665283
+            ],
+            "current_residual": [
+              0.7709788084030151,
+              1.7119213342666626
+            ],
+            "current_transport": [
+              0.787348210811615,
+              1.797272801399231
+            ]
+          },
+          "data/rover/mars-rover-variation-1/rover_seed_1.hdf5:demo_2": {
+            "model": [
+              1.062500238418579,
+              1.872383713722229
+            ],
+            "copy": [
+              0.8670175671577454,
+              2.0964088439941406
+            ],
+            "transport": [
+              0.7632712125778198,
+              1.5254310369491577
+            ],
+            "shuffled": [
+              1.0710442066192627,
+              1.8837943077087402
+            ],
+            "current_residual": [
+              0.7828258872032166,
+              1.6203469038009644
+            ],
+            "current_transport": [
+              0.796211302280426,
+              1.6495165824890137
+            ]
+          }
+        },
+        "by_layout": {
+          "debug": {
+            "model": [
+              1.1041865348815918,
+              1.9798542261123657
+            ],
+            "copy": [
+              0.8952810764312744,
+              2.212705612182617
+            ],
+            "transport": [
+              0.7767308354377747,
+              1.6401609182357788
+            ],
+            "shuffled": [
+              1.1170423030853271,
+              1.9846312999725342
+            ],
+            "current_residual": [
+              0.7938774228096008,
+              1.7044154405593872
+            ],
+            "current_transport": [
+              0.8091974258422852,
+              1.76634681224823
+            ]
+          }
+        },
+        "selection_score": 1.3143458464890716,
+        "gain_over_transport": [
+          -0.42158194898913637,
+          -0.20710974398900706
+        ],
+        "action_shuffle_increase": [
+          0.011642750384665668,
+          0.0024128412067734306
+        ]
+      },
+      "candidate_gate": false
+    },
+    {
+      "architecture": "dino",
+      "seed": 1,
+      "epoch": 13,
+      "checkpoint_sha256": "ccbcc58d2b31cceff79e0be7d34b00b15f0362d20b03c23d2bcc8bd1ca10c28f",
+      "validation": {
+        "model": [
+          0.8555488586425781,
+          1.8364601135253906
+        ],
+        "copy": [
+          0.8952810764312744,
+          2.212705612182617
+        ],
+        "transport": [
+          0.7767308354377747,
+          1.6401609182357788
+        ],
+        "shuffled": [
+          0.8565180897712708,
+          1.8354575634002686
+        ],
+        "current_residual": [
+          0.7938774228096008,
+          1.7044154405593872
+        ],
+        "current_transport": [
+          0.8091974258422852,
+          1.76634681224823
+        ],
+        "normalized_training_objective": 0.43774592876434326,
+        "near_rover": {
+          "model": [
+            0.7425107955932617,
+            1.7080233097076416
+          ],
+          "copy": [
+            0.7394635081291199,
+            1.9041506052017212
+          ],
+          "transport": [
+            0.6521954536437988,
+            1.4466156959533691
+          ],
+          "shuffled": [
+            0.7445061802864075,
+            1.7125308513641357
+          ],
+          "current_residual": [
+            0.6555090546607971,
+            1.4580076932907104
+          ],
+          "current_transport": [
+            0.6707678437232971,
+            1.5307323932647705
+          ]
+        },
+        "by_episode": {
+          "data/rover/mars-rover-variation-1/rover_seed_1.hdf5:demo_0": {
+            "model": [
+              0.9289008975028992,
+              1.8265297412872314
+            ],
+            "copy": [
+              0.981048047542572,
+              2.3059263229370117
+            ],
+            "transport": [
+              0.8208953142166138,
+              1.7014530897140503
+            ],
+            "shuffled": [
+              0.9302142262458801,
+              1.8327515125274658
+            ],
+            "current_residual": [
+              0.8428756594657898,
+              1.7760448455810547
+            ],
+            "current_transport": [
+              0.858391523361206,
+              1.8319270610809326
+            ]
+          },
+          "data/rover/mars-rover-variation-1/rover_seed_1.hdf5:demo_1": {
+            "model": [
+              0.833493173122406,
+              1.8972141742706299
+            ],
+            "copy": [
+              0.8605805039405823,
+              2.2266292572021484
+            ],
+            "transport": [
+              0.7582017779350281,
+              1.6724069118499756
+            ],
+            "shuffled": [
+              0.8350828886032104,
+              1.8972675800323486
+            ],
+            "current_residual": [
+              0.7709788084030151,
+              1.7119213342666626
+            ],
+            "current_transport": [
+              0.787348210811615,
+              1.797272801399231
+            ]
+          },
+          "data/rover/mars-rover-variation-1/rover_seed_1.hdf5:demo_2": {
+            "model": [
+              0.8187475204467773,
+              1.7457133531570435
+            ],
+            "copy": [
+              0.8670175671577454,
+              2.0964088439941406
+            ],
+            "transport": [
+              0.7632712125778198,
+              1.5254310369491577
+            ],
+            "shuffled": [
+              0.8183432817459106,
+              1.7357361316680908
+            ],
+            "current_residual": [
+              0.7828258872032166,
+              1.6203469038009644
+            ],
+            "current_transport": [
+              0.796211302280426,
+              1.6495165824890137
+            ]
+          }
+        },
+        "by_layout": {
+          "debug": {
+            "model": [
+              0.8555488586425781,
+              1.8364601135253906
+            ],
+            "copy": [
+              0.8952810764312744,
+              2.212705612182617
+            ],
+            "transport": [
+              0.7767308354377747,
+              1.6401609182357788
+            ],
+            "shuffled": [
+              0.8565180897712708,
+              1.8354575634002686
+            ],
+            "current_residual": [
+              0.7938774228096008,
+              1.7044154405593872
+            ],
+            "current_transport": [
+              0.8091974258422852,
+              1.76634681224823
+            ]
+          }
+        },
+        "selection_score": 1.110578468667369,
+        "gain_over_transport": [
+          -0.10147404945032301,
+          -0.11968288788441495
+        ],
+        "action_shuffle_increase": [
+          0.0011328764206761655,
+          -0.0005459144566976049
+        ]
+      },
+      "candidate_gate": false
+    },
+    {
+      "architecture": "adaln",
+      "seed": 1,
+      "epoch": 24,
+      "checkpoint_sha256": "e0619d2f6ad96c2f6061f2d82de5b736c8f5c8532e82dcabe53382a43fad7eea",
+      "validation": {
+        "model": [
+          1.0350459814071655,
+          2.04848575592041
+        ],
+        "copy": [
+          0.8952810764312744,
+          2.212705612182617
+        ],
+        "transport": [
+          0.7767308354377747,
+          1.6401609182357788
+        ],
+        "shuffled": [
+          1.0738650560379028,
+          2.0847432613372803
+        ],
+        "current_residual": [
+          0.7938774228096008,
+          1.7044154405593872
+        ],
+        "current_transport": [
+          0.8091974258422852,
+          1.76634681224823
+        ],
+        "normalized_training_objective": 0.5073561668395996,
+        "near_rover": {
+          "model": [
+            0.9456888437271118,
+            2.070358991622925
+          ],
+          "copy": [
+            0.7394635081291199,
+            1.9041506052017212
+          ],
+          "transport": [
+            0.6521954536437988,
+            1.4466156959533691
+          ],
+          "shuffled": [
+            0.9763415455818176,
+            2.082568407058716
+          ],
+          "current_residual": [
+            0.6555090546607971,
+            1.4580076932907104
+          ],
+          "current_transport": [
+            0.6707678437232971,
+            1.5307323932647705
+          ]
+        },
+        "by_episode": {
+          "data/rover/mars-rover-variation-1/rover_seed_1.hdf5:demo_0": {
+            "model": [
+              1.1044601202011108,
+              2.0173122882843018
+            ],
+            "copy": [
+              0.981048047542572,
+              2.3059263229370117
+            ],
+            "transport": [
+              0.8208953142166138,
+              1.7014530897140503
+            ],
+            "shuffled": [
+              1.136763095855713,
+              2.074411153793335
+            ],
+            "current_residual": [
+              0.8428756594657898,
+              1.7760448455810547
+            ],
+            "current_transport": [
+              0.858391523361206,
+              1.8319270610809326
+            ]
+          },
+          "data/rover/mars-rover-variation-1/rover_seed_1.hdf5:demo_1": {
+            "model": [
+              1.0084772109985352,
+              2.1239120960235596
+            ],
+            "copy": [
+              0.8605805039405823,
+              2.2266292572021484
+            ],
+            "transport": [
+              0.7582017779350281,
+              1.6724069118499756
+            ],
+            "shuffled": [
+              1.052293300628662,
+              2.1346278190612793
+            ],
+            "current_residual": [
+              0.7709788084030151,
+              1.7119213342666626
+            ],
+            "current_transport": [
+              0.787348210811615,
+              1.797272801399231
+            ]
+          },
+          "data/rover/mars-rover-variation-1/rover_seed_1.hdf5:demo_2": {
+            "model": [
+              1.0096596479415894,
+              1.9546679258346558
+            ],
+            "copy": [
+              0.8670175671577454,
+              2.0964088439941406
+            ],
+            "transport": [
+              0.7632712125778198,
+              1.5254310369491577
+            ],
+            "shuffled": [
+              1.0467137098312378,
+              2.012408971786499
+            ],
+            "current_residual": [
+              0.7828258872032166,
+              1.6203469038009644
+            ],
+            "current_transport": [
+              0.796211302280426,
+              1.6495165824890137
+            ]
+          }
+        },
+        "by_layout": {
+          "debug": {
+            "model": [
+              1.0350459814071655,
+              2.04848575592041
+            ],
+            "copy": [
+              0.8952810764312744,
+              2.212705612182617
+            ],
+            "transport": [
+              0.7767308354377747,
+              1.6401609182357788
+            ],
+            "shuffled": [
+              1.0738650560379028,
+              2.0847432613372803
+            ],
+            "current_residual": [
+              0.7938774228096008,
+              1.7044154405593872
+            ],
+            "current_transport": [
+              0.8091974258422852,
+              1.76634681224823
+            ]
+          }
+        },
+        "selection_score": 1.2907606317848688,
+        "gain_over_transport": [
+          -0.33256713160331963,
+          -0.2489541319664179
+        ],
+        "action_shuffle_increase": [
+          0.03750468609902913,
+          0.017699661963516578
+        ]
+      },
+      "candidate_gate": false
+    },
+    {
+      "architecture": "dino",
+      "seed": 2,
+      "epoch": 14,
+      "checkpoint_sha256": "db2b7431c70979e21a72cc7698e1eca3b64531fae8935b6ca42c6f643b565bee",
+      "validation": {
+        "model": [
+          0.8506341576576233,
+          1.8519247770309448
+        ],
+        "copy": [
+          0.8952810764312744,
+          2.212705612182617
+        ],
+        "transport": [
+          0.7767308354377747,
+          1.6401609182357788
+        ],
+        "shuffled": [
+          0.8517879843711853,
+          1.8539199829101562
+        ],
+        "current_residual": [
+          0.7938774228096008,
+          1.7044154405593872
+        ],
+        "current_transport": [
+          0.8091974258422852,
+          1.76634681224823
+        ],
+        "normalized_training_objective": 0.43808794021606445,
+        "near_rover": {
+          "model": [
+            0.7420535683631897,
+            1.7380291223526
+          ],
+          "copy": [
+            0.7394635081291199,
+            1.9041506052017212
+          ],
+          "transport": [
+            0.6521954536437988,
+            1.4466156959533691
+          ],
+          "shuffled": [
+            0.7440562844276428,
+            1.7457764148712158
+          ],
+          "current_residual": [
+            0.6555090546607971,
+            1.4580076932907104
+          ],
+          "current_transport": [
+            0.6707678437232971,
+            1.5307323932647705
+          ]
+        },
+        "by_episode": {
+          "data/rover/mars-rover-variation-1/rover_seed_1.hdf5:demo_0": {
+            "model": [
+              0.9265362620353699,
+              1.8932307958602905
+            ],
+            "copy": [
+              0.981048047542572,
+              2.3059263229370117
+            ],
+            "transport": [
+              0.8208953142166138,
+              1.7014530897140503
+            ],
+            "shuffled": [
+              0.9282238483428955,
+              1.9003682136535645
+            ],
+            "current_residual": [
+              0.8428756594657898,
+              1.7760448455810547
+            ],
+            "current_transport": [
+              0.858391523361206,
+              1.8319270610809326
+            ]
+          },
+          "data/rover/mars-rover-variation-1/rover_seed_1.hdf5:demo_1": {
+            "model": [
+              0.8256469368934631,
+              1.8878601789474487
+            ],
+            "copy": [
+              0.8605805039405823,
+              2.2266292572021484
+            ],
+            "transport": [
+              0.7582017779350281,
+              1.6724069118499756
+            ],
+            "shuffled": [
+              0.8276814222335815,
+              1.8922059535980225
+            ],
+            "current_residual": [
+              0.7709788084030151,
+              1.7119213342666626
+            ],
+            "current_transport": [
+              0.787348210811615,
+              1.797272801399231
+            ]
+          },
+          "data/rover/mars-rover-variation-1/rover_seed_1.hdf5:demo_2": {
+            "model": [
+              0.8161388039588928,
+              1.7510673999786377
+            ],
+            "copy": [
+              0.8670175671577454,
+              2.0964088439941406
+            ],
+            "transport": [
+              0.7632712125778198,
+              1.5254310369491577
+            ],
+            "shuffled": [
+              0.8153000473976135,
+              1.744024634361267
+            ],
+            "current_residual": [
+              0.7828258872032166,
+              1.6203469038009644
+            ],
+            "current_transport": [
+              0.796211302280426,
+              1.6495165824890137
+            ]
+          }
+        },
+        "by_layout": {
+          "debug": {
+            "model": [
+              0.8506341576576233,
+              1.8519247770309448
+            ],
+            "copy": [
+              0.8952810764312744,
+              2.212705612182617
+            ],
+            "transport": [
+              0.7767308354377747,
+              1.6401609182357788
+            ],
+            "shuffled": [
+              0.8517879843711853,
+              1.8539199829101562
+            ],
+            "current_residual": [
+              0.7938774228096008,
+              1.7044154405593872
+            ],
+            "current_transport": [
+              0.8091974258422852,
+              1.76634681224823
+            ]
+          }
+        },
+        "selection_score": 1.1121291333203072,
+        "gain_over_transport": [
+          -0.09514663104393928,
+          -0.12911163559667527
+        ],
+        "action_shuffle_increase": [
+          0.0013564312027385395,
+          0.001077368748427343
+        ]
+      },
+      "candidate_gate": false
+    },
+    {
+      "architecture": "adaln",
+      "seed": 2,
+      "epoch": 13,
+      "checkpoint_sha256": "17a3dfc9595ca5610142278684e50ca2bfe62cf48e274daee21b323827a1c751",
+      "validation": {
+        "model": [
+          1.0979716777801514,
+          1.969323754310608
+        ],
+        "copy": [
+          0.8952810764312744,
+          2.212705612182617
+        ],
+        "transport": [
+          0.7767308354377747,
+          1.6401609182357788
+        ],
+        "shuffled": [
+          1.1141676902770996,
+          2.0061278343200684
+        ],
+        "current_residual": [
+          0.7938774228096008,
+          1.7044154405593872
+        ],
+        "current_transport": [
+          0.8091974258422852,
+          1.76634681224823
+        ],
+        "normalized_training_objective": 0.5225693583488464,
+        "near_rover": {
+          "model": [
+            0.9916834235191345,
+            1.809720516204834
+          ],
+          "copy": [
+            0.7394635081291199,
+            1.9041506052017212
+          ],
+          "transport": [
+            0.6521954536437988,
+            1.4466156959533691
+          ],
+          "shuffled": [
+            1.0034319162368774,
+            1.839869499206543
+          ],
+          "current_residual": [
+            0.6555090546607971,
+            1.4580076932907104
+          ],
+          "current_transport": [
+            0.6707678437232971,
+            1.5307323932647705
+          ]
+        },
+        "by_episode": {
+          "data/rover/mars-rover-variation-1/rover_seed_1.hdf5:demo_0": {
+            "model": [
+              1.1824361085891724,
+              1.9946681261062622
+            ],
+            "copy": [
+              0.981048047542572,
+              2.3059263229370117
+            ],
+            "transport": [
+              0.8208953142166138,
+              1.7014530897140503
+            ],
+            "shuffled": [
+              1.2045005559921265,
+              2.0649678707122803
+            ],
+            "current_residual": [
+              0.8428756594657898,
+              1.7760448455810547
+            ],
+            "current_transport": [
+              0.858391523361206,
+              1.8319270610809326
+            ]
+          },
+          "data/rover/mars-rover-variation-1/rover_seed_1.hdf5:demo_1": {
+            "model": [
+              1.0689836740493774,
+              1.9678881168365479
+            ],
+            "copy": [
+              0.8605805039405823,
+              2.2266292572021484
+            ],
+            "transport": [
+              0.7582017779350281,
+              1.6724069118499756
+            ],
+            "shuffled": [
+              1.087844967842102,
+              2.0141494274139404
+            ],
+            "current_residual": [
+              0.7709788084030151,
+              1.7119213342666626
+            ],
+            "current_transport": [
+              0.787348210811615,
+              1.797272801399231
+            ]
+          },
+          "data/rover/mars-rover-variation-1/rover_seed_1.hdf5:demo_2": {
+            "model": [
+              1.0615438222885132,
+              1.946358561515808
+            ],
+            "copy": [
+              0.8670175671577454,
+              2.0964088439941406
+            ],
+            "transport": [
+              0.7632712125778198,
+              1.5254310369491577
+            ],
+            "shuffled": [
+              1.0674556493759155,
+              1.9339944124221802
+            ],
+            "current_residual": [
+              0.7828258872032166,
+              1.6203469038009644
+            ],
+            "current_transport": [
+              0.796211302280426,
+              1.6495165824890137
+            ]
+          }
+        },
+        "by_layout": {
+          "debug": {
+            "model": [
+              1.0979716777801514,
+              1.969323754310608
+            ],
+            "copy": [
+              0.8952810764312744,
+              2.212705612182617
+            ],
+            "transport": [
+              0.7767308354377747,
+              1.6401609182357788
+            ],
+            "shuffled": [
+              1.1141676902770996,
+              2.0061278343200684
+            ],
+            "current_residual": [
+              0.7938774228096008,
+              1.7044154405593872
+            ],
+            "current_transport": [
+              0.8091974258422852,
+              1.76634681224823
+            ]
+          }
+        },
+        "selection_score": 1.3071350013506167,
+        "gain_over_transport": [
+          -0.41358064812931183,
+          -0.20068935457192172
+        ],
+        "action_shuffle_increase": [
+          0.01475084724379494,
+          0.01868868941884272
+        ]
+      },
+      "candidate_gate": false
+    }
+  ],
+  "validation_indices": [
+    0,
+    1,
+    2,
+    3,
+    5,
+    6,
+    7,
+    8,
+    10,
+    11,
+    12,
+    14,
+    15,
+    16,
+    17,
+    19,
+    20,
+    21,
+    22,
+    24,
+    25,
+    26,
+    28,
+    29,
+    30,
+    31,
+    33,
+    34,
+    35,
+    36,
+    38,
+    39,
+    40,
+    42,
+    43,
+    44,
+    45,
+    47,
+    48,
+    49,
+    51,
+    52,
+    53,
+    54,
+    56,
+    57,
+    58,
+    59,
+    61,
+    62,
+    63,
+    65,
+    66,
+    67,
+    68,
+    70,
+    71,
+    72,
+    73,
+    75,
+    76,
+    77,
+    79,
+    80,
+    81,
+    82,
+    84,
+    85,
+    86,
+    88,
+    89,
+    90,
+    91,
+    93,
+    94,
+    95,
+    96,
+    98,
+    99,
+    100,
+    102,
+    103,
+    104,
+    105,
+    107,
+    108,
+    109,
+    110,
+    112,
+    113,
+    114,
+    116,
+    117,
+    118,
+    119,
+    121,
+    122,
+    123,
+    125,
+    126,
+    127,
+    128,
+    130,
+    131,
+    132,
+    133,
+    135,
+    136,
+    137,
+    139,
+    140,
+    141,
+    142,
+    144,
+    145,
+    146,
+    147,
+    149,
+    150,
+    151,
+    153,
+    154,
+    155,
+    156,
+    158,
+    159,
+    160,
+    162
+  ],
+  "action_donor_indices": [
+    146,
+    82,
+    142,
+    102,
+    118,
+    113,
+    145,
+    156,
+    156,
+    105,
+    142,
+    131,
+    144,
+    75,
+    133,
+    142,
+    125,
+    52,
+    116,
+    79,
+    51,
+    135,
+    58,
+    146,
+    77,
+    131,
+    130,
+    158,
+    140,
+    86,
+    149,
+    94,
+    54,
+    67,
+    80,
+    31,
+    140,
+    11,
+    1,
+    22,
+    22,
+    154,
+    145,
+    24,
+    126,
+    159,
+    42,
+    31,
+    40,
+    151,
+    25,
+    123,
+    3,
+    151,
+    39,
+    125,
+    128,
+    132,
+    20,
+    121,
+    149,
+    20,
+    16,
+    130,
+    19,
+    0,
+    35,
+    127,
+    122,
+    40,
+    8,
+    6,
+    137,
+    12,
+    22,
+    151,
+    123,
+    132,
+    151,
+    125,
+    140,
+    162,
+    142,
+    3,
+    162,
+    29,
+    36,
+    42,
+    149,
+    10,
+    118,
+    3,
+    127,
+    66,
+    66,
+    71,
+    12,
+    89,
+    52,
+    47,
+    82,
+    7,
+    100,
+    114,
+    21,
+    114,
+    68,
+    44,
+    25,
+    6,
+    56,
+    58,
+    63,
+    48,
+    24,
+    15,
+    20,
+    114,
+    5,
+    68,
+    3,
+    104,
+    81,
+    43,
+    77,
+    98,
+    39,
+    77
+  ],
+  "sources": {
+    "/Users/sameerkashyap/code/mars_world_rover/scripts/evaluate_world_model_pilot.py": "4967924203625e289b8824f6bfbb48554b9cc09ccd14d684324270e44b77050e",
+    "/Users/sameerkashyap/.cache/uv/archive-v0/WjwfK0JA0vmi7IkZ1Pa-H/lib/python3.12/site-packages/torch/utils/_contextlib.py": "f22c21a037c4b26a431112138fa66a5108c5e9cfe4c9169e732c1d15ea7a8406",
+    "/Users/sameerkashyap/code/mars_world_rover/src/rover_world_model.py": "270bdcae4ed33cd2b9ea624736847365679cefb0ce1a91213b99d67dcc80e336",
+    "/Users/sameerkashyap/code/mars_world_rover/src/rover_training.py": "939f3c0aacdcc216a3a9eff491a4a5fe170428440f2ab270eab828405a7f0973",
+    "/Users/sameerkashyap/code/mars_world_rover/scripts/train_rover_jepa.py": "3046f8982e96f2ced33b590faf0babfad85134b2f866de22434ba04dcf80de8d",
+    "/Users/sameerkashyap/code/mars_world_rover/scripts/train_rover_baseline.py": "a595821fde3ec2f776aad54374dd30e9421ff56f226bdcb0e9f43de88b1f9cad",
+    "external/jepa-wms/app/main.py": "13b01e489a0721f24c087c25b75085975a1835f1599ef57a4df3d3f07f45283c",
+    "external/jepa-wms/app/main_distributed.py": "a5cd0a47fd0677038f8da04aa91f7d1e44d375810ca750f3b78a700daf0074ae",
+    "external/jepa-wms/app/plan_common/datasets/__init__.py": "d242db62989cf8cb9abe3e901473722ccba9d7b1f6d0786d5598ae57c5d6f3ac",
+    "external/jepa-wms/app/plan_common/datasets/droid_dset.py": "5601fdd692773ecd41a6a021cd97090639a86af89e2863c75376f9105af6baa4",
+    "external/jepa-wms/app/plan_common/datasets/droid_traj_stats.py": "2c4f972cd168623dadf595adb6c80888d0910ede3266b2b0a83ed66423b85a01",
+    "external/jepa-wms/app/plan_common/datasets/metaworld_hf_dset.py": "83e5975c90870f316140a3d6db22887b9bb46a673ffbc0fd5cb3c33bcefb19c6",
+    "external/jepa-wms/app/plan_common/datasets/point_maze_dset.py": "ea78143e69840d519a944e3d470301cc21aa5bc540b5397de9207ca8e1d716f7",
+    "external/jepa-wms/app/plan_common/datasets/preprocessor.py": "b0454c593327230dd29a02fe1de65a54cefecc60d98d59c8830563821cc9574f",
+    "external/jepa-wms/app/plan_common/datasets/pusht_dset.py": "8a95851fbc2bc8a9ccc1bff2e7043362e36cf4e7a792c7e17fb14509c01fe167",
+    "external/jepa-wms/app/plan_common/datasets/robocasa_dset.py": "ac4a4c88dd3d7c5d1bf1b0570024e578af9ae1980aac62dd5e27bd1a8e7595f9",
+    "external/jepa-wms/app/plan_common/datasets/traj_dset.py": "865f31178caf99c800b272148f876ab85d2f82ee97e2d7f18946459a80e8c893",
+    "external/jepa-wms/app/plan_common/datasets/transforms.py": "807446c6f944c2c771fdf8269dfac0ecab4a7fc7764e39d80b739eb0bdb13dc5",
+    "external/jepa-wms/app/plan_common/datasets/utils.py": "e264c808ebdaa6bcd653538d7a2a53932a6cd985071e204efb5b966c6dff130a",
+    "external/jepa-wms/app/plan_common/datasets/wall_dset.py": "796481642a6be27b5ebc55667d2963486c62b3ef4e9568f0fd8c2b0261c5444b",
+    "external/jepa-wms/app/plan_common/models/AdaLN_vit.py": "77e20661849a33199c581b4ab47e2d0417ef2e81571e4998a30cc242b68abe97",
+    "external/jepa-wms/app/plan_common/models/decoder.py": "9752316a1768f614d7c30761d1f4dd36d61625ea76cfd625d84580fb72d12c96",
+    "external/jepa-wms/app/plan_common/models/dino.py": "6994115d43796ceda054509eb6bac9b9ea62ae1115b4d0f9dae25122f7ab0e9f",
+    "external/jepa-wms/app/plan_common/models/lpips_loss.py": "9496c83f1af2d6ed4222132b19fad8c71237dd126b6904130779bb5a166f4f7e",
+    "external/jepa-wms/app/plan_common/models/prop_embedding.py": "22ab8c47b39a906d37e747a342959f9b492f54776ae80bcb675ee738573c7c51",
+    "external/jepa-wms/app/plan_common/models/state_decoder.py": "4ed3467c721a7766019e07e060d9e8988714e039dace2e383439bc050666de6d",
+    "external/jepa-wms/app/plan_common/models/trainable_model.py": "3d753a9b88848ae9fa4ec31c2ccb94da92300d2cf2a2ddd5d37eae440b3acad3",
+    "external/jepa-wms/app/plan_common/models/vit.py": "81d53872f60477ed3191f14ab3c71ee74e914945df3fac1a1ee378b9905d4087",
+    "external/jepa-wms/app/plan_common/models/wm_heads.py": "136e36fd67a321ad0a9df6c5d2c67dcd558ef8a8646f4b627932ce24e9921329",
+    "external/jepa-wms/app/plan_common/plot/aliases.py": "13d3d9fd49aa80998bf65611cc0325190635f691a45dfdb891e95541a66f295c",
+    "external/jepa-wms/app/plan_common/plot/logs_plan_joint_per_design_choice.py": "2c2aa806022bc5c0c5b2f8a63027873778ebc88c341e193d36c2f19ed5686328",
+    "external/jepa-wms/app/plan_common/plot/logs_plan_joint_unif_utils.py": "5c3370ca37559addc1162a7e882fbb8c16e356254bac555143670bee4097aefd",
+    "external/jepa-wms/app/scaffold.py": "3e368977bfc168a574be4755f27d0f78ab81ba66bbe19f2f3e3fac3c8af2cf77",
+    "external/jepa-wms/app/vjepa_wm/modelcustom/simu_env_planning/vit_enc_preds.py": "2a4e30a3beef4c1168679b08ec12b61a5b51d4a9d3b7a040391bebf9026c61a4",
+    "external/jepa-wms/app/vjepa_wm/train.py": "c1fc4c57b99cab18df14405236adf463363fa4eef23705635a2a48e5d6e98285",
+    "external/jepa-wms/app/vjepa_wm/utils.py": "a81aaa29eaefce406bcd2f7f160b04cf233cd7c1fc21815be234da9f814ed7ef",
+    "external/jepa-wms/app/vjepa_wm/video_wm.py": "657bd3e9eb2ec35442cc06e208b4632a53503a35a83a96abbbf82608d2fe9154",
+    "external/jepa-wms/evals/main.py": "f910454e7379ab06404ddf45452dd5fb917c0b49c18ebe28f3a379a4e4f36c48",
+    "external/jepa-wms/evals/main_distributed.py": "8b698256e3dec30fcbcc98d5cf584c330e43124f4be837ea2f4446b83eb7817d",
+    "external/jepa-wms/evals/scaffold.py": "dad631ce87816eb37048399ad6cebc0338962c317eed7d1f68a02b00dc632290",
+    "external/jepa-wms/evals/simu_env_planning/envs/droid_dset_dummy_env.py": "195b91bec55bdb517ab0f5e5063b6b2ef7f8bba83b5e5b53ba89de3d89cabe40",
+    "external/jepa-wms/evals/simu_env_planning/envs/init.py": "2dc641d4ea5f649400db8301f81fd121e9f96243d58422be6820d1472dd43f0a",
+    "external/jepa-wms/evals/simu_env_planning/envs/metaworld.py": "e7799e33ccea099e1a479d5f130dbc060cceb1d8f488facb01cf2578f025ca42",
+    "external/jepa-wms/evals/simu_env_planning/envs/pointmaze_env/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "external/jepa-wms/evals/simu_env_planning/envs/pointmaze_env/dynamic_mjc.py": "560457fd218343855b8ead9ac9097bfaf49c4c7f09bb634e8ece2a13b2460eae",
+    "external/jepa-wms/evals/simu_env_planning/envs/pointmaze_env/gridcraft/__init__.py": "bf2d7f7ac8492c7aa6692e8f2c6d2c07844bc5964d7418bdc85bfa8de74ac595",
+    "external/jepa-wms/evals/simu_env_planning/envs/pointmaze_env/gridcraft/grid_env.py": "ccea952e4981cbf0121e1cd10d9b6671fc4ea9da97604e06293ad06e4e1fff3a",
+    "external/jepa-wms/evals/simu_env_planning/envs/pointmaze_env/gridcraft/grid_spec.py": "593210f3980421e5e6a0ca4e4720195312439bf3ae2144f696ec42c5bf3c58f9",
+    "external/jepa-wms/evals/simu_env_planning/envs/pointmaze_env/gridcraft/utils.py": "d007e4985da8f110e310e8a9ff14cdd031bb0d4c9a2d413208026fe22ba3373c",
+    "external/jepa-wms/evals/simu_env_planning/envs/pointmaze_env/gridcraft/wrappers.py": "857c8f64ffe96f7625aef7cf38c1c56db805885ada2df237813139437e0d1cdd",
+    "external/jepa-wms/evals/simu_env_planning/envs/pointmaze_env/maze_model.py": "302e83b9c95609f3f7a843b7136cf7eae1a2aa41d29dff625ae7799d3317ecc0",
+    "external/jepa-wms/evals/simu_env_planning/envs/pointmaze_env/q_iteration.py": "ea33ffd773df62ebb6ec53f308692cd88f78022da2c1f5a4fb82e75e98864c42",
+    "external/jepa-wms/evals/simu_env_planning/envs/pointmaze_env/waypoint_controller.py": "5b77492af06ba78db1ac7415a31957cca7cb439f5575fed7bc94d81ddd230431",
+    "external/jepa-wms/evals/simu_env_planning/envs/pointmaze_gym_wrap.py": "a1d60e18eb11ba39bb86310d0f82ffd9f5be442aa8b726bf4191722efa366b95",
+    "external/jepa-wms/evals/simu_env_planning/envs/pusht_env/pusht_env.py": "6ba34790b6c2ce017a76322c2f1c205ef97d4d3b08a620f844a57075c608a723",
+    "external/jepa-wms/evals/simu_env_planning/envs/pusht_gym_wrap.py": "ed4689253c571c66250503bfaea4c67f3accf88228141096d7de7971f5215942",
+    "external/jepa-wms/evals/simu_env_planning/envs/robocasa.py": "83ccebf93c731ae3db55e373c361179b66ab976cbc8952be11b16b6c77217f00",
+    "external/jepa-wms/evals/simu_env_planning/envs/wall_env/data/__init__.py": "53657d462f942b8a9d1b37aa8f81d6ac87fb8fa31d76186dfe798cac7b673dc3",
+    "external/jepa-wms/evals/simu_env_planning/envs/wall_env/data/configs.py": "896c93bd1b8c46ed9bd29c4b2564239880ef022cd29847feeb044cffeca0e8c2",
+    "external/jepa-wms/evals/simu_env_planning/envs/wall_env/data/single.py": "fe20a2b0dce67fb20e390f08bd47cb262afd3163ae42e8179e8e1c5caa2f032a",
+    "external/jepa-wms/evals/simu_env_planning/envs/wall_env/data/wall.py": "4e37f98d059ac3ab829a58d39c1af94959041cceb84524b172058b5cc4fb7d46",
+    "external/jepa-wms/evals/simu_env_planning/envs/wall_env/data/wall_utils.py": "57f76a1c5674d525506775f30424be534f7a59c78235cf9aa48c670e78d9ba49",
+    "external/jepa-wms/evals/simu_env_planning/envs/wall_env/envs/__init__.py": "bf2d7f7ac8492c7aa6692e8f2c6d2c07844bc5964d7418bdc85bfa8de74ac595",
+    "external/jepa-wms/evals/simu_env_planning/envs/wall_env/envs/utils.py": "e3fee112e82fb6ab4da71d45142baefd346aba8b5ab2ee68d6de682fb59f259a",
+    "external/jepa-wms/evals/simu_env_planning/envs/wall_env/envs/wall.py": "b7e1ae48a5d3c63497605d4dd7ed63f1f19dcbdbb44574d227b9e268a39ba463",
+    "external/jepa-wms/evals/simu_env_planning/envs/wall_gym_wrap.py": "f2279fb8c6bd3731810b8680c831ee9a749b85eea2081c68e0adac8806766e71",
+    "external/jepa-wms/evals/simu_env_planning/envs/wrappers/multitask.py": "8f25a3376db462dac579ef25b012443280e4543c0788b1cfc0ed3f2ebe54f536",
+    "external/jepa-wms/evals/simu_env_planning/envs/wrappers/pixels.py": "462615b59ace9fbaa5c2ca1d0536569814ee5b9a86b5e0769d951166ec2f4cd3",
+    "external/jepa-wms/evals/simu_env_planning/envs/wrappers/tensor.py": "3e5eb3c742a24305abc330fb80dbec7c63a3251d0c99a5fc84e26e20d4261fd8",
+    "external/jepa-wms/evals/simu_env_planning/envs/wrappers/time_limit.py": "64045359e2158d3e4db406fb4c17af238728fbaf95f18f4422632fe4641fa72f",
+    "external/jepa-wms/evals/simu_env_planning/eval.py": "010b0c36de39bc9840751fd976fa63f68ad6ce9ae82162f38467aa7f31224c93",
+    "external/jepa-wms/evals/simu_env_planning/planning/common/__init__.py": "5cbbd33f743f3e91cc1e350cf246bd032963197dd3f3a47fe92ec50759b19604",
+    "external/jepa-wms/evals/simu_env_planning/planning/common/gc_logger.py": "1938d0af585bf13064140b6cdde2434ddb15c52cf430319d70e73c38234b7518",
+    "external/jepa-wms/evals/simu_env_planning/planning/common/parser.py": "41880fdcbfbc8e9c5669b159eca614eb2f93e37f405a35e044db15e506208b13",
+    "external/jepa-wms/evals/simu_env_planning/planning/episode_plot_utils.py": "ff40a2649632970351c00502a2e72f4d0eb8ac1b04af28fc4677f4ded24f36a8",
+    "external/jepa-wms/evals/simu_env_planning/planning/gc_agent.py": "f0a1ccb99b70b69d166aa94f83717ba7a468a6ad3a77a4940a1856dbefb2b9dc",
+    "external/jepa-wms/evals/simu_env_planning/planning/plan_evaluator.py": "7a81a47af6eeea6b024b10d65115cdef96650621b0d60339aaad0a161d9b2ee0",
+    "external/jepa-wms/evals/simu_env_planning/planning/planning/objectives.py": "db8b8a4bac7b7cb6486bc09f6bed7501a73152c0e529abbb57e0454fd93d853f",
+    "external/jepa-wms/evals/simu_env_planning/planning/planning/planner.py": "6b673d10b30cd66d07b09daa7b96397f367f49387c443731b6d7d2fd148cc0e3",
+    "external/jepa-wms/evals/simu_env_planning/planning/utils.py": "e5c502eb0ec50e28215d6baf96cc0727ccaf20e4b9452cd1921c9014e42564d4",
+    "external/jepa-wms/evals/simu_env_planning/run_eval_grid.py": "05991135e124dfda2bc1ca0f8bb056699a6ec06fe7e608cc116528379ee3b9a2",
+    "external/jepa-wms/evals/unroll_decode/eval.py": "f801e10df1dff4d67b4463248c7f7d504b9556cfc934940442045bb524b930a8",
+    "external/jepa-wms/evals/utils.py": "33062b55fbc908aebe471bf410196b4a0d0d94da9a6940b059c11d7d346bbe31",
+    "external/jepa-wms/hubconf.py": "b7493e1a55eaa0c64444dc8940387471a2c81db7822d1db86090c759df70688a",
+    "external/jepa-wms/macros.py": "8dfa1d6d514a1b1b39b1265a001b93169a471dfd98dbaf0affbd6c22096bdffe",
+    "external/jepa-wms/setup_macros.py": "df2209db5e90b66281cf295d83069b550e4e8a3ab00d2a15e35d45f19b4f313c",
+    "external/jepa-wms/src/datasets/data_manager.py": "d3a61db1d5c0b250b265b371bcc98afd55eb0052f329fece9aa935d424af6250",
+    "external/jepa-wms/src/datasets/imagenet1k.py": "154c9f4a84adfe921c6ea455dbc8b75f86a970abe7a08741d08a7052ed1573d1",
+    "external/jepa-wms/src/datasets/utils/dataloader.py": "a59bf2c0bc1b1a6013ec1556699658bdf9f1eeb1e45d3755823abd0d73c9c60a",
+    "external/jepa-wms/src/datasets/utils/utils.py": "7189f66225c8d7b46613c75d3447f4dd5f85c58c2c51e226cc0666f8951c2e1f",
+    "external/jepa-wms/src/datasets/utils/video/functional.py": "16e6fa06e2d27001ce7d2aab861a6014e62b33ab027ed1598a759d44d36a5e31",
+    "external/jepa-wms/src/datasets/utils/video/randaugment.py": "d57ca1adaa21428479b1adb019630029eefdd883b4fee40bfb7caa537ea8a3f0",
+    "external/jepa-wms/src/datasets/utils/video/randerase.py": "3ec9a33d143162a62fe6467330cd96c12e8b2e144cc32feac620338ad14e3327",
+    "external/jepa-wms/src/datasets/utils/video/transforms.py": "61fd92a11e788e2b34e2d121ee45376044802544a076ecdc7c571e834cccdf3c",
+    "external/jepa-wms/src/datasets/utils/weighted_sampler.py": "0fc573c4c0ef23088cacff7c48c5b515ccdf40dc4d569f32ecbeb5c67f61cde7",
+    "external/jepa-wms/src/datasets/video_dataset.py": "cef5b179e8c058acb857c0404c9db6ca91c5569e10a7f96fbff5657b8d032219",
+    "external/jepa-wms/src/masks/utils.py": "ce0608c69376733b560c060d97e854e283b072c2b916431c91e09c143a93910c",
+    "external/jepa-wms/src/models/ac_predictor.py": "80ca6c22ea68702e19ea47f52d89b395a4dd07e62cba81ba626d4bfe265ae87d",
+    "external/jepa-wms/src/models/utils/modules.py": "aabc4baa04036c05142a4e314d1712141a38e31611121d56d21674750f303fe8",
+    "external/jepa-wms/src/models/utils/patch_embed.py": "486aa52b2279086f4e48a69e3aff5c62ac729049b18875129fd4bcec989a8fc1",
+    "external/jepa-wms/src/models/utils/pos_embs.py": "bc0c2f1ef55a7b8511efa4c4724249eccdbb850d7c26bf6082bd780cb15a8bd3",
+    "external/jepa-wms/src/models/vision_transformer.py": "d9b04503af9b451241704836b1934ac26b80395dddf7b3a8218f613db5364f1d",
+    "external/jepa-wms/src/models/vision_transformer_v2.py": "c9d5867e6583d6de03508d270153545422ce7f0fa5557c0a9af869e037548b9f",
+    "external/jepa-wms/src/scripts/download_data.py": "f267dc7bd10aa881cbdcbe30706f8d8ebfc90ee69ff28fac659f2439335a5d5f",
+    "external/jepa-wms/src/scripts/generate_droid_paths.py": "166358ef51ddde060de7205d8d69eb62d51aa57e691c32022d3e77e939c9dee9",
+    "external/jepa-wms/src/utils/adamw.py": "7de50dd7bb960d80b01e799c19b5b363a8568a7b7e0647fb84e5cfd66e0450b0",
+    "external/jepa-wms/src/utils/cluster.py": "7d0a1da72eff5fe381311a4811e4291a2c2de59aee4a68d1df23814f6a7f621e",
+    "external/jepa-wms/src/utils/distributed.py": "1becffeb5c6f679b4d8ff776a554489b5b9c385c3dbc7a42a2f98187a4046c4c",
+    "external/jepa-wms/src/utils/logging.py": "ed71caf9e9c1219894223647926fc8116fe31991d22e9c272c435e947b0ebe79",
+    "external/jepa-wms/src/utils/monitoring.py": "a1573242507164157d75766fd757083e1e950067c508f88f24f0163df7ccdcc1",
+    "external/jepa-wms/src/utils/schedulers.py": "7d006141e10fd260850bd0e6d67deb1f4dfb23f6fe4d253f07df2f8971fdee48",
+    "external/jepa-wms/src/utils/tensors.py": "a19ba8e3494b801394352d18f565befeed9a7e47d3e3ea72b20a050cfab66c1a",
+    "external/jepa-wms/src/utils/yaml_utils.py": "b2a56897a8c55dd591ac7c69d6320eaafdbc2f7ebe632501d0114193b722d9ce",
+    "external/jepa-wms/tests/__init__.py": "4e9770dbc4800859b92e4560b8f878202403d7db3b44e507dd8f812ee3a2e2f1",
+    "external/jepa-wms/tests/datasets/__init__.py": "4e9770dbc4800859b92e4560b8f878202403d7db3b44e507dd8f812ee3a2e2f1",
+    "external/jepa-wms/tests/datasets/test_dataloader.py": "b4c3c4e8ed43dfade0243fbbb57399677100e1b2d2a2fba6634039b5f4ff0569",
+    "external/jepa-wms/tests/datasets/test_plan_common_transforms.py": "0948897074808343c00d2968536d591825be0094f52eb3d0091455ada47f1e71",
+    "external/jepa-wms/tests/models/__init__.py": "4e9770dbc4800859b92e4560b8f878202403d7db3b44e507dd8f812ee3a2e2f1",
+    "external/jepa-wms/tests/models/test_encoders.py": "0dcf08afdacdd2dd9376a9a03c36c20c44c8967430dbb3331736a1f53b86865c",
+    "external/jepa-wms/tests/models/test_predictor.py": "ad556badec51c2ee350f79bfe87571233adb4302c429f8bbfca97c4d73ccd06e"
+  },
+  "current_residual_checkpoint_sha256": "e28f932c1c5802556aa4432eba63c0c2c5aa82799ddde2f7bcaa42945d2a9079",
+  "motion_prior_sha256": "b8ef589f34dde9cb51add5700cf3da35cba1316ab64a46cdee8db2d9d3743226",
+  "encoder_weights_sha256": "b938bf1bc15cd2ec0feacfe3a1bb553fe8ea9ca46a7e1d8d00217f29aef60cd9",
+  "validation_files": {
+    "data/rover/mars-rover-variation-1/rover_seed_1.hdf5": "872588c68772cffa922f8e90277a507564fab44a6dcfe663dcb4ebc94ba02926"
+  },
+  "recordings": {
+    "data/rover/mars-rover-variation-1/rover_seed_1.hdf5": {
+      "task": "AAURoverEnvSimple-v0",
+      "seed": 1,
+      "terrain": "debug",
+      "steps": 900,
+      "sweep_index": 1,
+      "action_policy": "varied",
+      "episodes": 3
+    }
+  },
+  "split_sha256": "fbadbc08b76f642b57f0bf1e75f6993a528dd52d628e92be1051f3b98b67f368",
+  "scope": "Development re-evaluation of fixed selected weights; no retraining, test-set opening, or controller promotion."
+}

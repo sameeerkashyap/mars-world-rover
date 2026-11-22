@@ -1,0 +1,215 @@
+{
+  "arms": [
+    {
+      "architecture": "dino",
+      "seed": 0,
+      "best_epoch": 11,
+      "epochs": 19,
+      "stop_reason": "validation_plateau",
+      "validation": {
+        "model": [
+          0.8668320775032043,
+          1.8375346660614014
+        ],
+        "copy": [
+          0.8952794075012207,
+          2.212702751159668
+        ],
+        "transport": [
+          0.7767293453216553,
+          1.6401582956314087
+        ],
+        "shuffled": [
+          0.8684619069099426,
+          1.8396687507629395
+        ],
+        "selection_score": 1.1181712849145014,
+        "gain_over_transport": [
+          -0.11600273985301301,
+          -0.12033982997598969
+        ],
+        "action_shuffle_increase": [
+          0.001880213537358788,
+          0.0011613847297435864
+        ]
+      },
+      "candidate_gate": false
+    },
+    {
+      "architecture": "adaln",
+      "seed": 0,
+      "best_epoch": 12,
+      "epochs": 20,
+      "stop_reason": "validation_plateau",
+      "validation": {
+        "model": [
+          1.1041853427886963,
+          1.979853630065918
+        ],
+        "copy": [
+          0.8952794075012207,
+          2.212702751159668
+        ],
+        "transport": [
+          0.7767293453216553,
+          1.6401582956314087
+        ],
+        "shuffled": [
+          1.1111946105957031,
+          1.980955719947815
+        ],
+        "selection_score": 1.3143472261029823,
+        "gain_over_transport": [
+          -0.42158314146279174,
+          -0.2071113107431728
+        ],
+        "action_shuffle_increase": [
+          0.006347908757151632,
+          0.0005566522015367781
+        ]
+      },
+      "candidate_gate": false
+    },
+    {
+      "architecture": "dino",
+      "seed": 1,
+      "best_epoch": 13,
+      "epochs": 21,
+      "stop_reason": "validation_plateau",
+      "validation": {
+        "model": [
+          0.8555480241775513,
+          1.836458683013916
+        ],
+        "copy": [
+          0.8952794075012207,
+          2.212702751159668
+        ],
+        "transport": [
+          0.7767293453216553,
+          1.6401582956314087
+        ],
+        "shuffled": [
+          0.8573580384254456,
+          1.8391222953796387
+        ],
+        "selection_score": 1.110579447156741,
+        "gain_over_transport": [
+          -0.10147508824100893,
+          -0.11968380607247298
+        ],
+        "action_shuffle_increase": [
+          0.0021156196925757875,
+          0.0014504069110616857
+        ]
+      },
+      "candidate_gate": false
+    },
+    {
+      "architecture": "adaln",
+      "seed": 1,
+      "best_epoch": 24,
+      "epochs": 32,
+      "stop_reason": "validation_plateau",
+      "validation": {
+        "model": [
+          1.0350446701049805,
+          2.0484840869903564
+        ],
+        "copy": [
+          0.8952794075012207,
+          2.212702751159668
+        ],
+        "transport": [
+          0.7767293453216553,
+          1.6401582956314087
+        ],
+        "shuffled": [
+          1.0569807291030884,
+          2.064028263092041
+        ],
+        "selection_score": 1.2907615556629586,
+        "gain_over_transport": [
+          -0.3325679998305626,
+          -0.24895511149535432
+        ],
+        "action_shuffle_increase": [
+          0.021193345206910852,
+          0.007588136124856204
+        ]
+      },
+      "candidate_gate": false
+    },
+    {
+      "architecture": "dino",
+      "seed": 2,
+      "best_epoch": 14,
+      "epochs": 22,
+      "stop_reason": "validation_plateau",
+      "validation": {
+        "model": [
+          0.8506327271461487,
+          1.851922631263733
+        ],
+        "copy": [
+          0.8952794075012207,
+          2.212702751159668
+        ],
+        "transport": [
+          0.7767293453216553,
+          1.6401582956314087
+        ],
+        "shuffled": [
+          0.8529241681098938,
+          1.8538289070129395
+        ],
+        "selection_score": 1.112129511543869,
+        "gain_over_transport": [
+          -0.09514689031594248,
+          -0.12911213277179545
+        ],
+        "action_shuffle_increase": [
+          0.002693807668831205,
+          0.0010293495619229098
+        ]
+      },
+      "candidate_gate": false
+    },
+    {
+      "architecture": "adaln",
+      "seed": 2,
+      "best_epoch": 13,
+      "epochs": 21,
+      "stop_reason": "validation_plateau",
+      "validation": {
+        "model": [
+          1.0979702472686768,
+          1.9693223237991333
+        ],
+        "copy": [
+          0.8952794075012207,
+          2.212702751159668
+        ],
+        "transport": [
+          0.7767293453216553,
+          1.6401582956314087
+        ],
+        "shuffled": [
+          1.106535792350769,
+          1.9752322435379028
+        ],
+        "selection_score": 1.3071359602949117,
+        "gain_over_transport": [
+          -0.41358151830093504,
+          -0.20069040228888824
+        ],
+        "action_shuffle_increase": [
+          0.0078012542720533595,
+          0.0030009915935793607
+        ]
+      },
+      "candidate_gate": false
+    }
+  ],
+  "scope": "Development-only offline pilot. No reserved test data or navigation promotion."
+}

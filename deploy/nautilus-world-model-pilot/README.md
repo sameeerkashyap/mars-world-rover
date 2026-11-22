@@ -78,9 +78,11 @@ the debug layout; grouping does not establish unseen-layout performance.
 It also scores the frozen v12 transported-residual predictor and its own
 transport control. Their PCA predictions are restored to full features while
 preserving components outside the PCA subspace. The full-feature transport
-control uses the newer full-data motion prior; the current model's paired
-transport uses its original frozen prior. Both checkpoint identities are
-recorded. This keeps a motion-prior change distinct from learned corrections.
+control uses the newer full-data motion checkpoint; the current model's paired
+transport uses its original frozen prior. The tested corresponding prior
+tensors differ by at most 0.000000179. The controls also differ in whether
+features outside the PCA subspace move or persist. Both identities are
+recorded; raw-feature error does not establish a terrain-readout gain.
 
 Selected checkpoint hashes are saved with metrics. Re-evaluation requires
 exactly the frozen validation recordings and the same normalization, samples,
