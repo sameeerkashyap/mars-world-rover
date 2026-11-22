@@ -36,7 +36,8 @@ def verify(root, verify_trial):
             or not plan["audit_forecasts"] or not plan["counterbalance_order"]):
         raise ValueError("The frozen design changed")
     for name, expected in plan["all_source_sha256"].items():
-        candidates = list((root / "source").rglob(name))
+        candidates = [path for path in (root / "source").rglob(name)
+                      if not any(part.startswith(".") for part in path.relative_to(root / "source").parts)]
         if len(candidates) != 1 or hashlib.sha256(candidates[0].read_bytes()).hexdigest() != expected:
             raise ValueError(f"Frozen experiment source changed: {name}")
     paths = sorted(root.glob("fresh-*/*/summary.json"))
@@ -69,7 +70,7 @@ def verify(root, verify_trial):
         for field, tolerance in (("position", 0.01), ("goal", 1e-5), ("yaw", 0.01)):
             if not np.allclose(baseline["initial"][field], learned["initial"][field], atol=tolerance, rtol=0):
                 raise ValueError(f"Unmatched initial {field}")
-        for field in ("root_velocity", "joint_position", "joint_velocity"):
+        for field in ("heading_error_rad", "root_velocity", "joint_position", "joint_velocity"):
             if not np.allclose(baseline["initial"][field], learned["initial"][field], atol=1e-5, rtol=0):
                 raise ValueError(f"Unmatched initial {field}")
         scans = []
@@ -85,7 +86,7 @@ def verify(root, verify_trial):
             disagreements = sum(float(row["alternate_speed_command"]) != float(row["speed_command"])
                                 or float(row["alternate_turn_command"]) != float(row["turn_command"]) for row in audited)
             if (len(audited) != trial["forecast_comparison_steps"] or disagreements != trial["forecast_command_disagreements"]
-                    or len(audited) != trial["forecast_scoring_calls"] or not audited):
+                    or len(audited) != trial["forecast_scoring_calls"]):
                 raise ValueError("Forecast influence audit is missing or inconsistent")
             verified[controller] = {"terrain": config["terrain"], **verify_trial(path.parent, trial),
                                     "forecast_comparison_steps": len(audited), "forecast_command_disagreements": disagreements}
@@ -108,7 +109,10 @@ def verify(root, verify_trial):
 
 
 if __name__ == "__main__":
-    spec = importlib.util.spec_from_file_location("verify_navigation", Path(__file__).with_name("verify_navigation.py"))
+    common = Path(__file__).with_name("verify_navigation.py")
+    if not common.is_file():
+        common = Path(__file__).parents[1] / "nautilus-jepa-navigation/verify.py"
+    spec = importlib.util.spec_from_file_location("verify_navigation", common)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     verify(Path(sys.argv[1]), module.verify_trial)

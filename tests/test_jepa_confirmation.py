@@ -104,6 +104,9 @@ class ConfirmationTests(unittest.TestCase):
             (root / "source/test-plan.json").write_text(json.dumps(plan))
             for name, relative in deploy.SOURCES.items():
                 shutil.copyfile(ROOT / relative, root / "source" / name)
+            hidden = root / "source/..data"
+            hidden.mkdir()
+            shutil.copyfile(root / "source/rover_navigate.py", hidden / "rover_navigate.py")
             last_folder = None
             for case in plan["fresh"]:
                 folder = root / ("fresh-" + case["terrain"]) / "pod"
@@ -114,11 +117,12 @@ class ConfirmationTests(unittest.TestCase):
                 order = ["jepa", "transport"] if seed % 2 else plan["controllers"]
                 trials = []
                 for controller in order:
+                    scored = seed != 100
                     row = {"step": 1, "time_s": 0.2, "x_m": 0.9, "y_m": 0., "yaw_rad": 0.,
                            "goal_x_m": 1., "goal_y_m": 0., "distance_m": 0.1, "heading_error_rad": 0.,
                            "planning_s": 0.07, "speed_command": 0.5, "turn_command": 0., "collision": False,
                            "native_success": True, "forecast_ready": True, "goal_hold": False,
-                           "alternate_speed_command": 0.35, "alternate_turn_command": 0.}
+                           "alternate_speed_command": 0.35 if scored else "", "alternate_turn_command": 0. if scored else ""}
                     with (folder / f"seed-{seed}-{controller}.csv").open("w") as handle:
                         writer = csv.DictWriter(handle, fieldnames=row)
                         writer.writeheader()
@@ -130,8 +134,8 @@ class ConfirmationTests(unittest.TestCase):
                                    "joint_velocity": [0.] * 6}, "steps": 1,
                                    "verified_success": True, "collision": False, "path_length_m": 0.9,
                                    "final_distance_m": 0.1, "max_consecutive_stop_steps": 0, "forecast_ready_steps": 1,
-                                   "hold_reached_goal": True, "goal_hold_steps": 0, "forecast_scoring_calls": 1,
-                                   "forecast_comparison_steps": 1, "forecast_command_disagreements": 1})
+                                   "hold_reached_goal": True, "goal_hold_steps": 0, "forecast_scoring_calls": int(scored),
+                                   "forecast_comparison_steps": int(scored), "forecast_command_disagreements": int(scored)})
                 config = {**case, "frozen_test_plan": plan, "phase": "fresh", "max_steps": 750,
                           "controllers": plan["controllers"], "checkpoint_sha256": plan["sha256"]["motion_checkpoint"],
                           "success_distance_m": 0.18, "success_heading_rad": 0.1,
@@ -145,6 +149,11 @@ class ConfirmationTests(unittest.TestCase):
             self.assertFalse(report["primary"]["promotion_passed"])
             np.savez_compressed(last_folder / "seed-119-jepa-scan.npz", initial=np.ones(10201))
             with self.assertRaisesRegex(ValueError, "initial height scans differ"):
+                verifier.verify(root, common.verify_trial)
+            np.savez_compressed(last_folder / "seed-119-jepa-scan.npz", initial=np.zeros(10201))
+            with (root / "source/rover_navigate.py").open("a") as handle:
+                handle.write("\nmodified = True\n")
+            with self.assertRaisesRegex(ValueError, "Frozen experiment source changed"):
                 verifier.verify(root, common.verify_trial)
 
 

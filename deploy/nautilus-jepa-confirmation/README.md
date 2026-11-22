@@ -57,6 +57,31 @@ Results and source snapshots persist at
 after every planned trace passes verification. `SUCCESS` means the experiment
 completed; inspect `primary.promotion_passed` for the scientific outcome.
 
+## Analysis checker correction
+
+The running v1 job uses source commit `e1ba34c` and the original plan saved in
+`frozen-v1-test-plan.json`. During the run, inspection found that `cp -rL` also
+copies Kubernetes' hidden ConfigMap projection directories. The original checker
+mistakes these valid hidden copies for duplicate source files. It will fail at
+the final analysis step after all forty simulations finish. The running source
+has not been changed or stopped.
+
+The corrected checker hashes each visible source file and ignores only hidden
+projection copies. It still rejects changed visible files. The focused test
+contains a hidden duplicate and a tampered visible file. The checker also permits
+zero audited commands when a trial has no forecast-scoring call; such trials
+remain in the fixed sample. Initial target heading is checked explicitly.
+These are analysis and integrity corrections. Cases, weights, controller code,
+primary outcome, exact test and promotion thresholds remain unchanged. The current
+`test-plan.json` differs only in the corrected checker's source receipt.
+
+After exporting the raw v1 run, execute the current checker against the exported
+folder. It validates the archived v1 source against its own frozen v1 plan:
+
+```bash
+rtk proxy uv run --no-project --with numpy python deploy/nautilus-jepa-confirmation/verify.py /path/to/exported-run
+```
+
 ## Limits
 
 The test covers new layouts from one synthetic terrain family. It cannot prove
