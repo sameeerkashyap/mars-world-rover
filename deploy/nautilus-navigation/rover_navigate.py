@@ -134,7 +134,6 @@ def run_trial(env, model, seed, controller, output, forecast=None, audit_forecas
             distance = float(state[0, 2]) / 0.11
             heading = abs(float(state[0, 4])) * torch.pi
             holding = hold_reached_goal and distance < 0.18 and heading < 0.1
-            goal_hold_steps += int(holding)
             if distance < 0.16:
                 align_heading = True
             if distance > 0.25 or (distance > 0.18 and heading < 0.08):
@@ -165,6 +164,8 @@ def run_trial(env, model, seed, controller, output, forecast=None, audit_forecas
                 comparison_steps += 1
                 command_disagreements += int(not torch.equal(action, alternate))
             stopped = int(bool((action == 0).all()))
+            holding = holding and bool(stopped)
+            goal_hold_steps += int(holding)
             stopped_steps += stopped
             consecutive_stops = consecutive_stops + 1 if stopped else 0
             longest_stop = max(longest_stop, consecutive_stops)

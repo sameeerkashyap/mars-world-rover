@@ -1,12 +1,58 @@
+import math
+from pathlib import Path
 import unittest
 
+import numpy as np
 import torch
 
 from scripts.rover_plan import plan_action, scan_costmap, scan_waypoint
-from scripts.train_rover_baseline import GoalDynamics, predict
+from scripts.train_rover_baseline import GoalDynamics, predict, relative_motion
 
 
 class RoverPlannerTests(unittest.TestCase):
+    def test_captured_arrivals_stay_inside_goal_during_acknowledgement(self):
+        with np.load(Path(__file__).parent / "fixtures/arrival-613-112.npz") as capture:
+            translating = torch.from_numpy(capture["states"])
+            turning = torch.from_numpy(capture["prior_states"])
+            scan = torch.from_numpy(capture["scan"])
+            model = GoalDynamics()
+            model.load_state_dict({key: torch.from_numpy(capture[key]) for key in model.state_dict()})
+        model.eval()
+        cases = ((translating, scan, False, 0.1802847683429718),
+                 (translating, scan, True, 0.1802847683429718),
+                 (turning, None, True, 0.1783006489276886))
+        scoring_calls = []
+
+        def terrain_cost(commands, lengths):
+            scoring_calls.append(len(commands))
+            return torch.zeros_like(lengths, dtype=torch.float32)
+
+        for states, measured_scan, align_heading, stopped_distance in cases:
+            scoring_calls.clear()
+            with self.subTest(stopped_distance=stopped_distance, align_heading=align_heading):
+                state, terminal = states.split(1)
+
+                class CapturedArrival(GoalDynamics):
+                    def motion(self, commands):
+                        zero = commands.clone()
+                        zero[:, 2:] = 0
+                        return relative_motion(state, terminal) + model.motion(commands) - model.motion(zero)
+
+                with torch.inference_mode():
+                    response = CapturedArrival()
+                    stopped = predict(response, state, torch.zeros((1, 2)))
+                    self.assertAlmostEqual(float(stopped[0, 2]) / 0.11, stopped_distance, places=7)
+                    action = plan_action(model, state, height_scan=measured_scan, align_heading=align_heading,
+                                         terrain_cost=terrain_cost if measured_scan is not None else None)
+                    next_state = predict(response, state, action)
+                self.assertEqual(scoring_calls, [])
+                self.assertLess(float(next_state[0, 2]) / 0.11, 0.18)
+                self.assertLess(abs(float(next_state[0, 4])) * math.pi, 0.1)
+                if states is turning:
+                    torch.testing.assert_close(action, torch.zeros((1, 2)))
+        stopped = plan_action(model, translating[:1], height_scan=torch.full((10201,), float("nan")))
+        torch.testing.assert_close(stopped, torch.zeros((1, 2)))
+
     def test_local_route_avoids_a_blocked_straight_path(self):
         cost = torch.zeros((101, 101))
         cost[35:66, 60:80] = 100
@@ -103,11 +149,15 @@ class RoverPlannerTests(unittest.TestCase):
             def forward(self, inputs):
                 raise RuntimeError("Candidate planning reached")
 
-        state = torch.tensor([[0., -0.23, 0.17944564 * 0.11, 0., -0.08632588 / torch.pi]])
+        state = torch.tensor([[0., -0.23, 0.17944564 * 0.11, 0.7249015033576081, -0.08632588 / torch.pi]])
         scan = torch.zeros(10201)
         action = plan_action(PlanningReached(), state, height_scan=scan, hold_reached_goal=True)
         torch.testing.assert_close(action, torch.zeros((1, 2)))
         torch.testing.assert_close(plan_action(PlanningReached(), state, height_scan=scan), action)
+        torch.testing.assert_close(plan_action(PlanningReached(), state, height_scan=scan, align_heading=True), action)
+        inside = state.clone()
+        inside[0, 0], inside[0, 2] = 0.05, 0.15 * 0.11
+        torch.testing.assert_close(plan_action(PlanningReached(), inside, height_scan=scan), action)
         with self.assertRaisesRegex(RuntimeError, "Candidate planning reached"):
             plan_action(PlanningReached(), state, height_scan=scan, hold_reached_goal=False)
         for distance, heading in ((0.181, 0.08), (0.179, 0.101)):

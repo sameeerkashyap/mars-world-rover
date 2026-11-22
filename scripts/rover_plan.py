@@ -79,16 +79,19 @@ def plan_action(model, state, horizon=20, align_heading=False, height_scan=None,
         raise ValueError("Planning needs one finite five-field state and a positive horizon")
     if terrain_cost is not None and height_scan is None:
         raise ValueError("Forecast scoring requires measured-scan obstacle checks")
+    reached_goal = hold_reached_goal and float(state[0, 2]) / 0.11 < 0.18 and abs(float(state[0, 4])) * math.pi < 0.1
+    # shortcut: prior command estimates translation, use measured velocity when the policy exposes it.
+    centering = reached_goal and float(state[0, 0]) != 0 and float(state[0, 2]) / 0.11 >= 0.16
     actions = torch.cartesian_prod(
         state.new_tensor([0.0, 0.05, 0.15, 0.35, 0.65, -0.05, -0.2]),
         state.new_tensor([0.0, -0.35, -0.23, -0.12, -0.04, 0.04, 0.12, 0.23, 0.35]),
     )
-    align_heading = align_heading or float(state[0, 2]) / 0.11 < 0.16
+    align_heading = (align_heading or float(state[0, 2]) / 0.11 < 0.16) and not centering
     if align_heading:
         actions = actions[actions[:, 0] == 0]
         horizon = min(horizon, 5)
     risk_map = scan_costmap(height_scan) if height_scan is not None else None
-    if hold_reached_goal and float(state[0, 2]) / 0.11 < 0.18 and abs(float(state[0, 4])) * math.pi < 0.1:
+    if reached_goal and not centering:
         return state.new_zeros((1, 2))
     waypoint = None
     if risk_map is not None and not align_heading:
@@ -130,7 +133,7 @@ def plan_action(model, state, horizon=20, align_heading=False, height_scan=None,
     if not torch.isfinite(cost).all():
         raise RuntimeError("The learned model produced non-finite planning costs")
     safe = risk < 100
-    if terrain_cost is not None and not align_heading and safe.any():
+    if terrain_cost is not None and not align_heading and not reached_goal and safe.any():
         ticks = torch.arange(25, device=state.device)[None, :, None]
         commands = torch.where(ticks < turn_steps[safe, None, None], actions[safe, None], follow[safe, None])
         predicted_cost = terrain_cost(commands, lengths[safe])
