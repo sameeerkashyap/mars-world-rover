@@ -5,6 +5,7 @@ from contextlib import ExitStack
 import csv
 import hashlib
 import inspect
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -28,6 +29,9 @@ parser.add_argument("--encoder-source", type=Path, default=Path("/runtime/dinov2
 parser.add_argument("--predictor-source", type=Path, default=Path("/opt/navigation/meta_vit.py"))
 parser.add_argument("--test-plan", type=Path)
 parser.add_argument("--replay-plan", type=Path)
+parser.add_argument("--planner-source", type=Path)
+parser.add_argument("--planner-role", choices=("original", "corrected"))
+parser.add_argument("--runtime-receipt", type=Path)
 parser.add_argument("--phase", choices=("development", "fresh"), default="development")
 parser.add_argument("--record-decisions", action="store_true")
 AppLauncher.add_app_launcher_args(parser)
@@ -57,6 +61,21 @@ from src.rover_forecast import load_forecast
 from src.evaluation_terrain import heldout_meshes
 from rover_envs.assets.terrains.terrain_registry import register_terrain_from_folder
 from rover_envs.assets.terrains.generator.terrain_generator import save_to_usd
+
+
+def select_planner(source, plan, role):
+    if source is None:
+        if role is not None:
+            raise ValueError("A planner role requires an explicit planner source")
+        return plan_action
+    if plan is None or role not in plan.get("planners", {}):
+        raise ValueError("An explicit planner source requires its frozen planner role")
+    if hashlib.sha256(source.read_bytes()).hexdigest() != plan["planners"][role]["sha256"]:
+        raise ValueError("Frozen planner source changed")
+    spec = importlib.util.spec_from_file_location("selected_rover_planner", source)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.plan_action
 
 
 class NavigationSnapshot(RecorderTerm):
@@ -98,6 +117,7 @@ def audit_forecast_action(forecast, model, state, scan, align_heading, hold_reac
 
 
 def run_trial(env, model, seed, controller, output, forecast=None, audit_forecasts=False):
+    supports_diagnostics = "diagnostics" in inspect.signature(plan_action).parameters
     env.reset(seed=seed)
     use_forecast = controller in ("jepa", "transport")
     hold_reached_goal = controller != "forward" and (controller == "model-hold" or not args.replay_plan)
@@ -109,7 +129,7 @@ def run_trial(env, model, seed, controller, output, forecast=None, audit_forecas
         if bool((terminated | truncated)[0]):
             raise RuntimeError("A settling step terminated the episode before control")
     initial = env.unwrapped.navigation_sample
-    if audit_forecasts:
+    if audit_forecasts or args.planner_role:
         robot = env.unwrapped.scene["robot"]
         initial = {**initial, "root_velocity": robot.data.root_link_vel_w.torch[0].detach().cpu().tolist(),
                    "joint_position": robot.data.joint_pos.torch[0].detach().cpu().tolist(),
@@ -165,7 +185,10 @@ def run_trial(env, model, seed, controller, output, forecast=None, audit_forecas
                 action = plan_action(model, state, align_heading=align_heading,
                                      height_scan=scan if controller in ("model", "model-hold", "jepa", "transport") else None,
                                      terrain_cost=forecast.costs if ready else None,
-                                     hold_reached_goal=hold_reached_goal, diagnostics=diagnostics)
+                                     hold_reached_goal=hold_reached_goal,
+                                     **({"diagnostics": diagnostics} if supports_diagnostics else {}))
+                if diagnostics is not None and not supports_diagnostics:
+                    diagnostics.update(reason="legacy_planner", waypoint_m=None, forecast_applied=bool(ready))
             if use_forecast and forecast.device.type == "cuda":
                 torch.cuda.synchronize(forecast.device)
             planning_seconds = time.perf_counter() - start_planning
@@ -251,6 +274,7 @@ def run_trial(env, model, seed, controller, output, forecast=None, audit_forecas
 
 
 def main():
+    global plan_action
     torch.set_num_threads(1)
     checkpoint = torch.load(args.checkpoint, map_location="cpu", weights_only=True)
     if checkpoint.get("schema") != "goal-motion-v1" or not checkpoint.get("use_actions"):
@@ -260,21 +284,26 @@ def main():
     model.eval()
     plan_path = args.replay_plan or args.test_plan
     plan = json.loads(plan_path.read_text()) if plan_path else None
+    plan_action = select_planner(args.planner_source, plan, args.planner_role)
+    comparison = bool(plan and plan.get("schema") == "rover-controller-validation-v1")
+    if comparison and (not args.planner_source or not args.runtime_receipt):
+        raise ValueError("Controller validation requires an explicit planner and runtime receipt")
     forecast = None
     if plan is not None:
-        if args.replay_plan and (args.phase != "development" or plan["controllers"] != ["model", "model-hold"]):
+        if args.replay_plan and not comparison and (args.phase != "development" or plan["controllers"] != ["model", "model-hold"]):
             raise ValueError("Goal-hold replay requires the two development controllers")
         if ({"terrain": args.terrain, "seeds": args.seeds} not in plan[args.phase]
                 or args.steps != plan["steps"] or (not args.replay_plan and plan["forecast_weight"] != 0.25)):
             raise ValueError("Trial cases differ from the frozen test plan")
-        for name, source in (("motion_checkpoint", args.checkpoint), ("planner_source", Path(plan_action.__wrapped__.__code__.co_filename)),
+        for name, source in (("motion_checkpoint", args.checkpoint), ("planner_source", args.planner_source or Path(inspect.unwrap(plan_action).__code__.co_filename)),
                              ("runner_source", Path(__file__)), ("forecast_source", Path(load_forecast.__code__.co_filename)),
                              ("terrain_source", Path(heldout_meshes.__code__.co_filename)),
                              ("motion_source", Path(model_for.__code__.co_filename))):
-            if hashlib.sha256(source.read_bytes()).hexdigest() != plan["sha256"][name]:
+            expected = plan["planners"][args.planner_role]["sha256"] if name == "planner_source" and args.planner_role else plan["sha256"][name]
+            if hashlib.sha256(source.read_bytes()).hexdigest() != expected:
                 raise ValueError(f"Frozen navigation input changed: {name}")
         if not args.replay_plan:
-            if plan["controllers"] not in (["model", "transport", "jepa"], ["transport", "jepa"]):
+            if plan["controllers"] not in (["model", "transport", "jepa"], ["transport", "jepa"]) and not (comparison and plan["controllers"] in (["transport"], ["jepa"])):
                 raise ValueError("Forecast plans require the paired transport and JEPA controls")
             forecast = load_forecast(args.jepa_run, args.terrain_checkpoint, args.encoder_source,
                                      args.predictor_source, plan, args.device)
@@ -283,11 +312,13 @@ def main():
     source_dir = output / "source"
     source_dir.mkdir()
     source_hashes = {}
-    for source in (__file__, inspect.unwrap(plan_action).__code__.co_filename, model_for.__code__.co_filename,
+    for source in (__file__, str(args.planner_source) if args.planner_source else inspect.unwrap(plan_action).__code__.co_filename, model_for.__code__.co_filename,
                    load_forecast.__code__.co_filename, heldout_meshes.__code__.co_filename):
         source = Path(source)
         source_hashes[source.name] = hashlib.sha256(source.read_bytes()).hexdigest()
         shutil.copyfile(source, source_dir / source.name)
+    if args.runtime_receipt:
+        shutil.copyfile(args.runtime_receipt, output / "runtime.json")
     cfg = parse_env_cfg(args.task, device=args.device, num_envs=1)
     cfg.seed = args.seeds[0]
     if args.terrain.startswith("test-rocks-"):
@@ -318,6 +349,9 @@ def main():
                                    plan.get("counterbalance_order") and seed % 2 else plan["controllers"]
                                    for seed in args.seeds} if plan else None,
               "development_replay": bool(args.replay_plan),
+              "planner_role": args.planner_role,
+              "planner_source_sha256": hashlib.sha256((args.planner_source or Path(inspect.unwrap(plan_action).__code__.co_filename)).read_bytes()).hexdigest(),
+              "runtime_sha256": hashlib.sha256(args.runtime_receipt.read_bytes()).hexdigest() if args.runtime_receipt else None,
               "record_decisions": args.record_decisions,
               "frozen_test_plan": plan, "phase": args.phase,
               "forecast_scoring": {"weight": 0.25, "max_seconds": 5, "patches": "central 2x2 maximum", "alignment": "scan only"},
@@ -367,7 +401,7 @@ def main():
             "mean_path_length_m": float(np.mean([result["path_length_m"] for result in trials])),
             "mean_planning_s": float(np.mean([result["planning_mean_s"] for result in trials])),
         }
-    if forecast is None and not args.replay_plan:
+    if forecast is None and not args.replay_plan and not comparison:
         learned, forward = summary["controllers"]["model"], summary["controllers"]["forward"]
         summary["meaningful_result"] = (learned["verified_successes"] > 0 and
                                          learned["mean_progress_m"] > forward["mean_progress_m"])
@@ -376,7 +410,7 @@ def main():
         summary["evaluation_completed"] = True
     (output / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
     print(json.dumps(summary, indent=2), flush=True)
-    if forecast is None and not args.replay_plan and not summary["meaningful_result"]:
+    if forecast is None and not args.replay_plan and not comparison and not summary["meaningful_result"]:
         raise RuntimeError("Learned planning did not reach a verified goal and beat forward progress")
     (output / "SUCCESS").touch()
 
