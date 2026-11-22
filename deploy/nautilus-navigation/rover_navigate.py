@@ -188,7 +188,7 @@ def run_trial(env, model, seed, controller, output, forecast=None, audit_forecas
                                      hold_reached_goal=hold_reached_goal,
                                      **({"diagnostics": diagnostics} if supports_diagnostics else {}))
                 if diagnostics is not None and not supports_diagnostics:
-                    diagnostics.update(reason="legacy_planner", waypoint_m=None, forecast_applied=bool(ready))
+                    diagnostics.update(reason="legacy_planner", waypoint_m=None, forecast_applied=bool(use_forecast and forecast.scoring_calls > calls_before))
             if use_forecast and forecast.device.type == "cuda":
                 torch.cuda.synchronize(forecast.device)
             planning_seconds = time.perf_counter() - start_planning
