@@ -133,7 +133,7 @@ def plan_action(model, state, horizon=20, align_heading=False, height_scan=None,
     if not torch.isfinite(cost).all():
         raise RuntimeError("The learned model produced non-finite planning costs")
     safe = risk < 100
-    if terrain_cost is not None and not align_heading and safe.any():
+    if terrain_cost is not None and not align_heading and not reached_goal and safe.any():
         ticks = torch.arange(25, device=state.device)[None, :, None]
         commands = torch.where(ticks < turn_steps[safe, None, None], actions[safe, None], follow[safe, None])
         predicted_cost = terrain_cost(commands, lengths[safe])

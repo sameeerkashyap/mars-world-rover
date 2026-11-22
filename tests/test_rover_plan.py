@@ -21,7 +21,14 @@ class RoverPlannerTests(unittest.TestCase):
         cases = ((translating, scan, False, 0.1802847683429718),
                  (translating, scan, True, 0.1802847683429718),
                  (turning, None, True, 0.1783006489276886))
+        scoring_calls = []
+
+        def terrain_cost(commands, lengths):
+            scoring_calls.append(len(commands))
+            return torch.zeros_like(lengths, dtype=torch.float32)
+
         for states, measured_scan, align_heading, stopped_distance in cases:
+            scoring_calls.clear()
             with self.subTest(stopped_distance=stopped_distance, align_heading=align_heading):
                 state, terminal = states.split(1)
 
@@ -35,8 +42,10 @@ class RoverPlannerTests(unittest.TestCase):
                     response = CapturedArrival()
                     stopped = predict(response, state, torch.zeros((1, 2)))
                     self.assertAlmostEqual(float(stopped[0, 2]) / 0.11, stopped_distance, places=7)
-                    action = plan_action(model, state, height_scan=measured_scan, align_heading=align_heading)
+                    action = plan_action(model, state, height_scan=measured_scan, align_heading=align_heading,
+                                         terrain_cost=terrain_cost if measured_scan is not None else None)
                     next_state = predict(response, state, action)
+                self.assertEqual(scoring_calls, [])
                 self.assertLess(float(next_state[0, 2]) / 0.11, 0.18)
                 self.assertLess(abs(float(next_state[0, 4])) * math.pi, 0.1)
                 if states is turning:
