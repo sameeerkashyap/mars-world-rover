@@ -23,6 +23,85 @@ from scripts.analyze_rover_decisions import inspect_trial
 
 
 class TimeoutDiagnosisTests(unittest.TestCase):
+    def test_native_waypoint_memory_resets_and_audit_reads_same_pre_call_hint(self):
+        class Environment:
+            def __init__(self):
+                self.unwrapped = self
+                self.device = "cpu"
+                self.step_dt = .2
+                values = SimpleNamespace(torch=torch.zeros((1, 6)))
+                self.scene = {"robot": SimpleNamespace(data=SimpleNamespace(root_link_vel_w=values,
+                              joint_pos=values, joint_vel=values))}
+
+            def reset(self, seed):
+                self.tick = 0
+
+            def step(self, action):
+                self.tick += 1
+                self.navigation_sample = {"position": [.1 * self.tick, 0., 0.],
+                                          "yaw": np.pi / 2 if self.tick == 5 else 0.,
+                                          "goal": [9., 0., 0.], "distance_m": 9 - .1 * self.tick,
+                                          "heading_error_rad": 0., "termination": {"is_success": False,
+                                          "collision": False, "time_limit": self.tick == 8}}
+                state = torch.tensor([[*action[0].tolist(), .9, 0., 0.]])
+                return {"policy": torch.cat((state, torch.zeros((1, 10201))), dim=1)}, torch.zeros(1), torch.tensor([False]), torch.tensor([self.tick == 8]), {}
+
+        class Forecast:
+            device = torch.device("cpu")
+            ready = True
+            scoring_calls = scored_candidates = 0
+
+            def reset(self, controller):
+                self.mode = controller
+                self.actual_calls = 0
+
+            def observe(self, observation, previous_action):
+                pass
+
+            def costs(self, commands, lengths):
+                self.scoring_calls += 1
+                self.scored_candidates += 1
+
+        calls = []
+        forecast = Forecast()
+
+        def choose(model, state, align_heading=False, height_scan=None, terrain_cost=None,
+                   hold_reached_goal=True, diagnostics=None, previous_waypoint=None):
+            calls.append((forecast.mode, None if previous_waypoint is None else previous_waypoint.tolist()))
+            terrain_cost(None, None)
+            if forecast.mode == "transport":
+                forecast.actual_calls += 1
+            stopped = forecast.actual_calls == 2
+            if diagnostics is not None:
+                diagnostics.update(reason="selected", mode="waypoint", waypoint_m=[1., 0.], forecast_applied=True)
+            return state.new_zeros((1, 2)) if stopped else state.new_tensor([[.15, .12 if previous_waypoint is None else -.12]])
+
+        source = Path(__file__).resolve().parents[1] / "deploy/nautilus-navigation/rover_navigate.py"
+        functions = [node for node in ast.parse(source.read_text()).body if isinstance(node, ast.FunctionDef)
+                     and node.name in ("run_trial", "audit_forecast_action")]
+        args = SimpleNamespace(replay_plan=None, steps=3, record_decisions=True, planner_role=None)
+        namespace = {"args": args, "torch": torch, "np": np, "csv": csv, "json": json, "time": time,
+                     "plan_action": choose, "h5py": h5py, "ExitStack": ExitStack, "inspect": inspect}
+        exec(compile(ast.Module(body=functions, type_ignores=[]), str(source), "exec"), namespace)
+        with tempfile.TemporaryDirectory() as directory, redirect_stdout(io.StringIO()):
+            output = Path(directory)
+            for seed, record in ((1, True), (2, False)):
+                args.record_decisions = record
+                namespace["run_trial"](Environment(), None, seed, "transport", output, forecast, True)
+            for start in (0, 6):
+                self.assertEqual(calls[start:start + 2], [("transport", None), ("jepa", None)])
+                for mode, hint in calls[start + 2:start + 4]:
+                    self.assertIsNotNone(hint)
+                    np.testing.assert_allclose(hint, [-.1, 1.], atol=1e-6)
+                self.assertEqual([mode for mode, _ in calls[start + 2:start + 4]], ["transport", "jepa"])
+                self.assertEqual(calls[start + 4:start + 6], [("transport", None), ("jepa", None)])
+            commands = []
+            for seed in (1, 2):
+                with (output / f"seed-{seed}-transport.csv").open() as handle:
+                    commands.append([(row["speed_command"], row["turn_command"]) for row in csv.DictReader(handle)])
+            self.assertEqual(commands[0], commands[1])
+            self.assertEqual(forecast.scoring_calls, 6)
+
     def test_native_runner_records_the_exact_pre_command_observation(self):
         class Environment:
             def __init__(self):
