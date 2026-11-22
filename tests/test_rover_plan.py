@@ -11,37 +11,25 @@ from scripts.train_rover_baseline import GoalDynamics, predict, relative_motion
 
 
 class RoverPlannerTests(unittest.TestCase):
-    def test_captured_reverse_arrival_preserves_heading_during_acknowledgement(self):
+    def test_captured_heading_limited_arrival_brakes_for_acknowledgement(self):
         folder = Path(__file__).parent / "fixtures"
         model = GoalDynamics()
         with np.load(folder / "arrival-613-112.npz") as weights:
             model.load_state_dict({key: torch.from_numpy(weights[key]) for key in model.state_dict()})
-        with np.load(folder / "arrival-heading-501-30.npz") as capture:
-            state = torch.from_numpy(capture["policy"][-1:, :5])
-            scan = torch.from_numpy(capture["policy"][-1, 5:])
-            recorded = torch.from_numpy(capture["command"][-1:])
-            endpoint = json.loads(str(capture["csv_rows_json"]))[-1]
-        terminal = state.new_tensor([[*recorded[0], float(endpoint["distance_m"]) * .11,
-                                      (math.atan2(float(endpoint["goal_y_m"]) - float(endpoint["y_m"]),
-                                                  float(endpoint["goal_x_m"]) - float(endpoint["x_m"]))
-                                       - float(endpoint["yaw_rad"])) / math.pi,
-                                      float(endpoint["heading_error_rad"]) / math.pi]])
         model.eval()
-
-        class CapturedArrival(GoalDynamics):
-            def motion(self, commands):
-                previous = commands.clone()
-                previous[:, 2:] = recorded
-                return relative_motion(state, terminal) + model.motion(commands) - model.motion(previous)
-
-        with torch.inference_mode():
-            response = CapturedArrival()
-            reproduced = predict(response, state, recorded)
-            self.assertAlmostEqual(float(reproduced[0, 4]) * math.pi, .10174131393432617, places=6)
-            action = plan_action(model, state, height_scan=scan)
-            next_state = predict(response, state, action)
-        self.assertLess(float(next_state[0, 2]) / .11, .18)
-        self.assertLess(abs(float(next_state[0, 4])) * math.pi, .1)
+        for fixture, recorded_command, native_heading in (
+                ("arrival-heading-501-30.npz", [-.05, .04], .10174131393432617),
+                ("arrival-heading-501-30-joint.npz", [-.2, .23], .11871552467346191)):
+            with self.subTest(fixture=fixture), np.load(folder / fixture) as capture:
+                state = torch.from_numpy(capture["policy"][-1:, :5])
+                scan = torch.from_numpy(capture["policy"][-1, 5:])
+                torch.testing.assert_close(torch.from_numpy(capture["command"][-1]), torch.tensor(recorded_command))
+                endpoint = json.loads(str(capture["csv_rows_json"]))[-1]
+                self.assertAlmostEqual(float(endpoint["heading_error_rad"]), native_heading)
+                diagnostics = {}
+                action = plan_action(model, state, height_scan=scan, diagnostics=diagnostics)
+                torch.testing.assert_close(action, torch.zeros((1, 2)))
+                self.assertEqual(diagnostics["reason"], "goal_hold")
 
     def test_captured_611_reachable_waypoint_prevents_turn_reversal(self):
         folder = Path(__file__).parent / "fixtures"

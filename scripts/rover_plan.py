@@ -98,7 +98,8 @@ def plan_action(model, state, horizon=20, align_heading=False, height_scan=None,
                            forecast_reason="pending" if terrain_cost is not None else "not_requested")
     reached_goal = hold_reached_goal and float(state[0, 2]) / 0.11 < 0.18 and abs(float(state[0, 4])) * math.pi < 0.1
     # shortcut: prior command estimates translation, use measured velocity when the policy exposes it.
-    centering = reached_goal and float(state[0, 0]) != 0 and float(state[0, 2]) / 0.11 >= 0.16
+    centering = (reached_goal and float(state[0, 0]) != 0 and float(state[0, 2]) / 0.11 >= 0.16
+                 and float(state[0, 2]) / (0.11 * 0.18) > abs(float(state[0, 4])) * math.pi / 0.1)
     actions = torch.cartesian_prod(
         state.new_tensor([0.0, 0.05, 0.15, 0.35, 0.65, -0.05, -0.2]),
         state.new_tensor([0.0, -0.35, -0.23, -0.12, -0.04, 0.04, 0.12, 0.23, 0.35]),
@@ -144,9 +145,6 @@ def plan_action(model, state, horizon=20, align_heading=False, height_scan=None,
     for step in range(int(lengths.max())):
         command = torch.where((step < turn_steps)[:, None], actions, follow)
         prediction = torch.where((step < lengths)[:, None], predict(model, prediction, command), prediction)
-        if centering and step == 0:
-            acknowledgement_cost = torch.maximum(prediction[:, 2] / (0.11 * 0.18),
-                                                  prediction[:, 4].abs() * torch.pi / 0.1)
         if risk_map is not None:
             xy = relative_motion(initial, prediction)[:, :2] / 0.11
             index = ((xy + 2.5) / 0.05).round().long()
@@ -156,9 +154,7 @@ def plan_action(model, state, horizon=20, align_heading=False, height_scan=None,
     distance = prediction[:, 2] / 0.11
     bearing = prediction[:, 3] * torch.pi
     heading = prediction[:, 4] * torch.pi
-    if centering:
-        cost = acknowledgement_cost
-    elif align_heading:
+    if align_heading:
         cost = heading.abs()
     else:
         cost = (relative_motion(initial, prediction)[:, :2] / 0.11 - waypoint).norm(dim=1) if waypoint is not None else distance + distance.clamp(max=2) * (bearing / torch.pi).square()
