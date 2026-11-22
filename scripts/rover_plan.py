@@ -144,6 +144,9 @@ def plan_action(model, state, horizon=20, align_heading=False, height_scan=None,
     for step in range(int(lengths.max())):
         command = torch.where((step < turn_steps)[:, None], actions, follow)
         prediction = torch.where((step < lengths)[:, None], predict(model, prediction, command), prediction)
+        if centering and step == 0:
+            acknowledgement_cost = torch.maximum(prediction[:, 2] / (0.11 * 0.18),
+                                                  prediction[:, 4].abs() * torch.pi / 0.1)
         if risk_map is not None:
             xy = relative_motion(initial, prediction)[:, :2] / 0.11
             index = ((xy + 2.5) / 0.05).round().long()
@@ -153,7 +156,9 @@ def plan_action(model, state, horizon=20, align_heading=False, height_scan=None,
     distance = prediction[:, 2] / 0.11
     bearing = prediction[:, 3] * torch.pi
     heading = prediction[:, 4] * torch.pi
-    if align_heading:
+    if centering:
+        cost = acknowledgement_cost
+    elif align_heading:
         cost = heading.abs()
     else:
         cost = (relative_motion(initial, prediction)[:, :2] / 0.11 - waypoint).norm(dim=1) if waypoint is not None else distance + distance.clamp(max=2) * (bearing / torch.pi).square()
