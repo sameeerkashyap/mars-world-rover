@@ -119,9 +119,9 @@ archive has SHA256 `917fef92ac94cd8e4924e46070c70dc8a1ab28a213be89d52aed2bf68308
 The raw job's failed packaging status is preserved in the artifact receipt.
 No running workload was stopped, and no PVC data was deleted.
 
-Checks: the original 61-test suite passed. After the analysis correction, all
-five focused confirmation tests passed, including source-copy and scan-tampering
-fixtures. The corrected checker was also run against the actual exported data.
+Checks: all 61 tests passed after the analysis correction, including the five
+focused confirmation tests with source-copy and scan-tampering fixtures. The
+corrected checker also passed on the actual exported data.
 
 This study covers one synthetic terrain family. The sample cannot rule out a
 smaller benefit elsewhere. The twenty inspected layouts are now development

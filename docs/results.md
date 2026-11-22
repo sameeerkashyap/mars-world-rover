@@ -1,6 +1,16 @@
 # Results and evidence
 
-The trained goal-motion model now runs in a closed feedback loop with Isaac Sim.
+The latest paired Isaac Sim comparison tested the existing frozen JEPA terrain
+forecasts against matching motion-only transport on twenty new rock layouts.
+Transport reached **16/20 strict goals** and JEPA reached **15/20**, with zero
+collisions in both arms. The exact paired test gave p = 1.0. JEPA did not meet
+the fixed improvement rule and took 20.05% longer to plan on average.
+The [completed report](../notes/jepa-navigation-confirmation-results.md) includes
+all verified outcomes, matching state and terrain checks, the corrected source
+checker, and the remaining goal-arrival counterexample. These layouts are now
+development data. Learned forecasts remain an experimental option.
+
+Earlier goal-motion runs used a closed feedback loop with Isaac Sim.
 The scan-aware planner reached four of six native goals with no collisions on
 the original cases and on six fresh cases. The original planner reached two
 goals in each set; forward motion reached none. The checkpoint is unchanged.
