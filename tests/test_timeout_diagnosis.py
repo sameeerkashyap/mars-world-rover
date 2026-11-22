@@ -71,8 +71,7 @@ class TimeoutDiagnosisTests(unittest.TestCase):
                 forecast.actual_calls += 1
             stopped = forecast.actual_calls == 2
             if diagnostics is not None:
-                diagnostics.update(reason="no_safe_candidate" if stopped else "selected", mode="waypoint",
-                                   waypoint_m=[1., 0.], forecast_applied=True)
+                diagnostics.update(reason="selected", mode="waypoint", waypoint_m=[1., 0.], forecast_applied=True)
             return state.new_zeros((1, 2)) if stopped else state.new_tensor([[.15, .12 if previous_waypoint is None else -.12]])
 
         source = Path(__file__).resolve().parents[1] / "deploy/nautilus-navigation/rover_navigate.py"

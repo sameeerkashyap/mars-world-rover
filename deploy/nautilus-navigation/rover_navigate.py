@@ -199,6 +199,7 @@ def run_trial(env, model, seed, controller, output, forecast=None, audit_forecas
                                      **({"previous_waypoint": previous_waypoint} if supports_previous_waypoint else {}))
                 if diagnostics is not None and not supports_diagnostics:
                     diagnostics.update(reason="legacy_planner", waypoint_m=None, forecast_applied=bool(use_forecast and forecast.scoring_calls > calls_before))
+            stopped = int(bool((action == 0).all()))
             world_waypoint = None
             if diagnostics is not None:
                 waypoint = diagnostics.get("waypoint_m")
@@ -207,7 +208,7 @@ def run_trial(env, model, seed, controller, output, forecast=None, audit_forecas
                     x, y = waypoint
                     diagnostics["world_waypoint_m"] = [pre["position"][0] + c * x - s * y,
                                                        pre["position"][1] + s * x + c * y]
-                    if diagnostics.get("reason") == "selected" and diagnostics.get("mode") == "waypoint":
+                    if not stopped and diagnostics.get("reason") == "selected" and diagnostics.get("mode") == "waypoint":
                         world_waypoint = diagnostics["world_waypoint_m"]
             if use_forecast and forecast.device.type == "cuda":
                 torch.cuda.synchronize(forecast.device)
@@ -221,7 +222,6 @@ def run_trial(env, model, seed, controller, output, forecast=None, audit_forecas
                     torch.cuda.synchronize(forecast.device)
                 comparison_steps += 1
                 command_disagreements += int(not torch.equal(action, alternate))
-            stopped = int(bool((action == 0).all()))
             holding = holding and bool(stopped)
             goal_hold_steps += int(holding)
             stopped_steps += stopped
