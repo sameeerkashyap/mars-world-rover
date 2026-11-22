@@ -1,6 +1,7 @@
 import ast
 from contextlib import ExitStack, redirect_stdout
 import csv
+import hashlib
 import io
 import inspect
 import json
@@ -18,6 +19,7 @@ import torch
 
 from scripts.train_rover_baseline import model_for
 from scripts.rover_plan import plan_action
+from scripts.analyze_rover_decisions import inspect_trial
 
 
 class TimeoutDiagnosisTests(unittest.TestCase):
@@ -73,6 +75,25 @@ class TimeoutDiagnosisTests(unittest.TestCase):
             self.assertEqual(float(rows[0]["x_m"]), .06)
             expected = [[float(row["speed_command"]), float(row["turn_command"])] for row in rows]
             np.testing.assert_array_equal(recorded_commands, expected)
+            (output / "source").mkdir()
+            frozen = output / "source/runner.py"
+            frozen.write_text("fixture source\n")
+            (output / "config.json").write_text(json.dumps({"source_sha256": {
+                "runner.py": hashlib.sha256(frozen.read_bytes()).hexdigest()}}))
+            inspected = inspect_trial(output / "seed-1-model.csv")
+            self.assertEqual(inspected["alignment"], "exact")
+            self.assertLess(inspected["policy_error_max"]["distance_m"], 1e-5)
+            self.assertEqual(inspected["waypoint_jumps_over_1m"], 0)
+            with h5py.File(output / "seed-1-model-decisions.h5", "r+") as recorded:
+                distance = float(recorded["policy"][0, 2])
+                recorded["policy"][0, 2] = distance + .11
+            self.assertGreater(inspect_trial(output / "seed-1-model.csv")["policy_error_max"]["distance_m"], .9)
+            with h5py.File(output / "seed-1-model-decisions.h5", "r+") as recorded:
+                recorded["policy"][0, 2] = distance
+            with h5py.File(output / "seed-1-model-decisions.h5", "r+") as recorded:
+                recorded["command"][0, 0] = .5
+            with self.assertRaises(AssertionError):
+                inspect_trial(output / "seed-1-model.csv")
             args.record_decisions = False
             namespace["run_trial"](Environment(), model, 2, "model", output)
             self.assertFalse((output / "seed-2-model-decisions.h5").exists())
