@@ -23,7 +23,9 @@ to freeze the final source and one controller mode. The design fixes layouts
 701–720, seeds 200–219, one original/corrected pair per layout, and alternating
 planner order. Both versions use the same mode, weights, runner, terrain, native
 goals, and safety checks. Do not run extra cases to replace a failed endpoint.
-No fresh plan or result is committed here.
+The [fresh v1 protocol](fresh-v1-protocol.md) registers the selected controller,
+exact snapshot hashes, transport mode, case order and analysis rules before
+outcomes. Its generated plan and snapshot manifest are committed beside it.
 
 Inside the prepared simulator runtime, with the existing stack and hardware
 receipt saved as JSON, run:
