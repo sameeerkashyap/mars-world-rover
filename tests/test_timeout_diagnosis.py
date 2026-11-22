@@ -2,6 +2,7 @@ import ast
 from contextlib import ExitStack, redirect_stdout
 import csv
 import io
+import inspect
 import json
 from pathlib import Path
 import subprocess
@@ -26,6 +27,9 @@ class TimeoutDiagnosisTests(unittest.TestCase):
                 self.unwrapped = self
                 self.device = "cpu"
                 self.step_dt = .2
+                values = SimpleNamespace(torch=torch.zeros((1, 6)))
+                self.scene = {"robot": SimpleNamespace(data=SimpleNamespace(root_link_vel_w=values,
+                              joint_pos=values, joint_vel=values))}
 
             def reset(self, seed):
                 self.tick = 0
@@ -42,16 +46,19 @@ class TimeoutDiagnosisTests(unittest.TestCase):
         source = Path(__file__).resolve().parents[1] / "deploy/nautilus-navigation/rover_navigate.py"
         tree = ast.parse(source.read_text())
         function = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == "run_trial")
-        args = SimpleNamespace(replay_plan=None, steps=2, record_decisions=True)
+        args = SimpleNamespace(replay_plan=None, steps=2, record_decisions=True, planner_role="corrected")
         namespace = {"args": args, "torch": torch, "np": np, "csv": csv, "json": json, "time": time,
-                     "plan_action": plan_action, "h5py": h5py, "ExitStack": ExitStack}
+                     "plan_action": plan_action, "h5py": h5py, "ExitStack": ExitStack, "inspect": inspect}
         exec(compile(ast.Module(body=[function], type_ignores=[]), str(source), "exec"), namespace)
         model = model_for(5, 2)
         for parameter in model.parameters():
             parameter.data.zero_()
         with tempfile.TemporaryDirectory() as directory, redirect_stdout(io.StringIO()):
             output = Path(directory)
-            namespace["run_trial"](Environment(), model, 1, "model", output)
+            result = namespace["run_trial"](Environment(), model, 1, "model", output)
+            self.assertEqual(result["initial"]["root_velocity"], [0.] * 6)
+            self.assertEqual(result["initial"]["joint_position"], [0.] * 6)
+            self.assertEqual(result["initial"]["joint_velocity"], [0.] * 6)
             with h5py.File(output / "seed-1-model-decisions.h5") as recorded:
                 self.assertTrue(recorded.attrs["complete"])
                 self.assertEqual(recorded.attrs["steps_written"], 2)
@@ -73,6 +80,16 @@ class TimeoutDiagnosisTests(unittest.TestCase):
                 unrecorded = list(csv.DictReader(handle))
             self.assertEqual([[row["speed_command"], row["turn_command"]] for row in unrecorded],
                              [[row["speed_command"], row["turn_command"]] for row in rows])
+            def legacy(model, state, align_heading=False, height_scan=None, terrain_cost=None, hold_reached_goal=True):
+                return plan_action(model, state, align_heading=align_heading, height_scan=height_scan,
+                                   terrain_cost=terrain_cost, hold_reached_goal=hold_reached_goal)
+            namespace["plan_action"] = legacy
+            args.record_decisions = True
+            namespace["run_trial"](Environment(), model, 3, "model", output)
+            with h5py.File(output / "seed-3-model-decisions.h5") as recorded:
+                self.assertEqual(json.loads(recorded["diagnostics"][0])["reason"], "legacy_planner")
+                np.testing.assert_array_equal(recorded["command"][:2], expected)
+
 
     def test_cli_matches_last_scan_to_pre_command_pose_and_previous_command(self):
         with tempfile.TemporaryDirectory() as directory:

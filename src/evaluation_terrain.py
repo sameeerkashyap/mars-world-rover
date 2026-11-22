@@ -4,7 +4,7 @@ import numpy as np
 
 
 def heldout_meshes(seed):
-    if seed not in (501, 502) and not 601 <= seed <= 620:
+    if seed not in (501, 502) and not 601 <= seed <= 620 and not 701 <= seed <= 720:
         raise ValueError("Only preregistered layout seeds are allowed")
     random = np.random.default_rng(seed)
     # Pad the fixed rock field for the upstream 25 m spawn border.
