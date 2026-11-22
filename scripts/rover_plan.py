@@ -74,11 +74,17 @@ def scan_waypoint(costmap, goal):
 
 
 @torch.inference_mode()
-def plan_action(model, state, horizon=20, align_heading=False, height_scan=None, terrain_cost=None, hold_reached_goal=True):
+def plan_action(model, state, horizon=20, align_heading=False, height_scan=None, terrain_cost=None, hold_reached_goal=True, diagnostics=None):
     if state.shape != (1, 5) or not torch.isfinite(state).all() or horizon < 1:
         raise ValueError("Planning needs one finite five-field state and a positive horizon")
     if terrain_cost is not None and height_scan is None:
         raise ValueError("Forecast scoring requires measured-scan obstacle checks")
+    if diagnostics is not None:
+        diagnostics.clear()
+        diagnostics.update(reason="planning", waypoint_m=None, candidate_count=0, safe_count=0,
+                           forecast_applied=False, selected_index=None, turn_steps=None, follow_action=None,
+                           length_steps=None, selected_cost=None, top_cost_gap=None,
+                           forecast_reason="pending" if terrain_cost is not None else "not_requested")
     reached_goal = hold_reached_goal and float(state[0, 2]) / 0.11 < 0.18 and abs(float(state[0, 4])) * math.pi < 0.1
     # shortcut: prior command estimates translation, use measured velocity when the policy exposes it.
     centering = reached_goal and float(state[0, 0]) != 0 and float(state[0, 2]) / 0.11 >= 0.16
@@ -91,7 +97,12 @@ def plan_action(model, state, horizon=20, align_heading=False, height_scan=None,
         actions = actions[actions[:, 0] == 0]
         horizon = min(horizon, 5)
     risk_map = scan_costmap(height_scan) if height_scan is not None else None
+    if diagnostics is not None:
+        diagnostics["mode"] = "centering" if centering else "alignment" if align_heading else "waypoint" if risk_map is not None else "goal"
     if reached_goal and not centering:
+        if diagnostics is not None:
+            diagnostics["reason"] = "goal_hold"
+            diagnostics["forecast_reason"] = "goal_hold"
         return state.new_zeros((1, 2))
     waypoint = None
     if risk_map is not None and not align_heading:
@@ -99,7 +110,12 @@ def plan_action(model, state, horizon=20, align_heading=False, height_scan=None,
         goal = state[0, 2] / 0.11 * torch.stack((angle.cos(), angle.sin()))
         waypoint = scan_waypoint(risk_map, goal)
         if waypoint is None:
+            if diagnostics is not None:
+                diagnostics["reason"] = "start_blocked"
+                diagnostics["forecast_reason"] = "start_blocked"
             return state.new_zeros((1, 2))
+        if diagnostics is not None:
+            diagnostics["waypoint_m"] = waypoint.tolist()
     lengths = torch.full((len(actions),), horizon, device=state.device, dtype=torch.long)
     turn_steps = torch.zeros_like(lengths)
     follow = actions.clone()
@@ -133,6 +149,11 @@ def plan_action(model, state, horizon=20, align_heading=False, height_scan=None,
     if not torch.isfinite(cost).all():
         raise RuntimeError("The learned model produced non-finite planning costs")
     safe = risk < 100
+    if diagnostics is not None:
+        diagnostics.update(candidate_count=len(actions), safe_count=int(safe.sum()),
+                           safe_forward_first_count=int((safe & (actions[:, 0] > 0)).sum()))
+        if terrain_cost is not None:
+            diagnostics["forecast_reason"] = "reached_goal" if reached_goal else "alignment" if align_heading else "no_safe_candidate" if not safe.any() else "pending"
     if terrain_cost is not None and not align_heading and not reached_goal and safe.any():
         ticks = torch.arange(25, device=state.device)[None, :, None]
         commands = torch.where(ticks < turn_steps[safe, None, None], actions[safe, None], follow[safe, None])
@@ -141,8 +162,20 @@ def plan_action(model, state, horizon=20, align_heading=False, height_scan=None,
                 or (predicted_cost < 0).any() or (predicted_cost > 1).any()):
             raise RuntimeError("Invalid predicted terrain costs")
         cost[safe] += 0.25 * predicted_cost
+        if diagnostics is not None:
+            diagnostics["forecast_applied"] = True
+            diagnostics["forecast_reason"] = "applied"
     cost += risk
     cost[risk >= 100] = torch.inf
     if not torch.isfinite(cost).any():
+        if diagnostics is not None:
+            diagnostics["reason"] = "no_safe_candidate"
         return torch.zeros((1, 2), device=state.device, dtype=state.dtype)
-    return actions[cost.argmin()].reshape(1, 2)
+    selected = cost.argmin()
+    if diagnostics is not None:
+        top = cost[torch.isfinite(cost)].sort().values[:2]
+        diagnostics.update(reason="selected", selected_index=int(selected), turn_steps=int(turn_steps[selected]),
+                           follow_action=follow[selected].tolist(), length_steps=int(lengths[selected]),
+                           selected_cost=float(cost[selected]), selected_measured_risk=float(risk[selected]),
+                           top_cost_gap=float(top[1] - top[0]) if len(top) > 1 else None)
+    return actions[selected].reshape(1, 2)
