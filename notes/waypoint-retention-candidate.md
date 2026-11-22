@@ -29,6 +29,9 @@ malformed, reached, near-goal, alignment, arrival, and unsafe-stop inputs. Runne
 checks cover current-pose conversion, per-trial reset, stop clearing, audit hint
 and counter preservation, legacy calls, and recording parity.
 
-Native physics validation remains required on layouts 604/611/614/615, 613/112,
-601/100, and 501/30-32. This captured action replay does not prove closed-loop
-progress, physical safety, forecast benefit, or performance on new layouts.
+The [native development replay](waypoint-retention-native-validation.md) completed
+on layouts 604/611/614/615, 613/112, 601/100 and 501/30-32. The fixed gate failed
+because corrected 501/30 lost an original strict success at the heading boundary.
+The candidate is not approved for fresh evaluation. The captured action replay
+alone does not prove closed-loop progress, physical safety, forecast benefit or
+performance on new layouts.
