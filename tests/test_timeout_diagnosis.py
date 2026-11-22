@@ -89,6 +89,32 @@ class TimeoutDiagnosisTests(unittest.TestCase):
             with h5py.File(output / "seed-3-model-decisions.h5") as recorded:
                 self.assertEqual(json.loads(recorded["diagnostics"][0])["reason"], "legacy_planner")
                 np.testing.assert_array_equal(recorded["command"][:2], expected)
+            class ReadyForecast:
+                device = torch.device("cpu")
+                ready = True
+                scoring_calls = scored_candidates = 0
+
+                def reset(self, controller):
+                    pass
+
+                def observe(self, observation, previous_action):
+                    pass
+
+                def costs(self, commands, lengths):
+                    self.scoring_calls += 1
+
+            def legacy_scoring(model, state, align_heading=False, height_scan=None, terrain_cost=None, hold_reached_goal=True):
+                if float(height_scan[0]) == 6.:
+                    terrain_cost(None, None)
+                return torch.zeros((1, 2))
+
+            namespace["plan_action"] = legacy_scoring
+            forecast = ReadyForecast()
+            namespace["run_trial"](Environment(), model, 4, "transport", output, forecast)
+            with h5py.File(output / "seed-4-transport-decisions.h5") as recorded:
+                applied = [json.loads(row)["forecast_applied"] for row in recorded["diagnostics"][:2]]
+                self.assertEqual(applied, [False, True])
+            self.assertEqual(forecast.scoring_calls, 1)
 
 
     def test_cli_matches_last_scan_to_pre_command_pose_and_previous_command(self):
