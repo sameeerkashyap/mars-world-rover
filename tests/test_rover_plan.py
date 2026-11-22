@@ -1,4 +1,3 @@
-import json
 import math
 from pathlib import Path
 import unittest
@@ -17,19 +16,22 @@ class RoverPlannerTests(unittest.TestCase):
         with np.load(folder / "arrival-613-112.npz") as weights:
             model.load_state_dict({key: torch.from_numpy(weights[key]) for key in model.state_dict()})
         model.eval()
-        for fixture, recorded_command, native_heading in (
-                ("arrival-heading-501-30.npz", [-.05, .04], .10174131393432617),
-                ("arrival-heading-501-30-joint.npz", [-.2, .23], .11871552467346191)):
-            with self.subTest(fixture=fixture), np.load(folder / fixture) as capture:
-                state = torch.from_numpy(capture["policy"][-1:, :5])
-                scan = torch.from_numpy(capture["policy"][-1, 5:])
-                torch.testing.assert_close(torch.from_numpy(capture["command"][-1]), torch.tensor(recorded_command))
-                endpoint = json.loads(str(capture["csv_rows_json"]))[-1]
-                self.assertAlmostEqual(float(endpoint["heading_error_rad"]), native_heading)
-                diagnostics = {}
-                action = plan_action(model, state, height_scan=scan, diagnostics=diagnostics)
-                torch.testing.assert_close(action, torch.zeros((1, 2)))
-                self.assertEqual(diagnostics["reason"], "goal_hold")
+        with np.load(folder / "arrival-heading-501-30-transitions.npz") as capture:
+            policy = torch.from_numpy(capture["policy"])
+            commands = torch.from_numpy(capture["commands"])
+            next_states = capture["next_states"]
+            np.testing.assert_array_equal(capture["native_success"], [True, True, True])
+            np.testing.assert_array_equal(capture["verified_success"], [False, False, True])
+            self.assertFalse(capture["collision"].any())
+            action = plan_action(model, policy[None, :5], height_scan=policy[5:])
+            matches = (commands == action).all(dim=1)
+            self.assertEqual(int(matches.sum()), 1)
+            selected = int(matches.nonzero()[0, 0])
+            self.assertTrue(capture["verified_success"][selected])
+            self.assertAlmostEqual(next_states[selected, 4], .1685691475868225)
+            self.assertAlmostEqual(next_states[selected, 5], .09633708000183105)
+            self.assertLess(next_states[selected, 4], .18)
+            self.assertLess(abs(next_states[selected, 5]), .1)
 
     def test_captured_611_reachable_waypoint_prevents_turn_reversal(self):
         folder = Path(__file__).parent / "fixtures"

@@ -1,6 +1,8 @@
-The first-step model correction in `3d853af` failed native validation. The next
+The first-step model correction in `3d853af` failed native validation. The brake
 candidate restores the previous centering cost and brakes when heading has less
-normalized margin than distance. Native validation of this brake is pending.
+normalized margin than distance. Its targeted native probe passes layout 501/30
+model-hold and layout 613/112 transport and JEPA. The full known-case gate is
+still pending.
 
 The combined waypoint controller exposed a heading failure during arrival
 acknowledgement on layout 501, seed 30. Its existing centering branch scored only
@@ -62,13 +64,32 @@ for reverse -0.2, turn +0.23. Zero speed and turn set all wheel and steering
 targets to zero. These target values explain the direction risk; they do not
 prove the resulting body motion on terrain.
 
-The next candidate centers only when current distance / 0.18 m exceeds absolute
+The brake candidate centers only when current distance / 0.18 m exceeds absolute
 heading / 0.1 rad. It uses the existing reached-goal and translation checks.
 Otherwise it uses the existing zero-command hold. In the captured 501 state,
 the fractions are 0.957106 and 0.975993, so it brakes. The earlier 613 recoil
 fixture still centers because its position is closer to its bound. No new
 threshold, model cost, horizon, safety mask, or weight is introduced.
 
-Native layout 501/30 and 613/112 runs must pass before the full known-case gate
-is repeated. Both failed candidates stay preserved as development evidence.
-No fresh-layout comparison is authorized by these local results.
+The immutable `faf2a8078f88-arrival-probe` snapshot ran four native trials. The
+existing `verify_trial` function independently checked each exported CSV and
+summary; [the report](arrival-heading-native-probe.json) retains hashes and
+results. The layout 501/30 no-hold control reproduces the heading failure.
+Model-hold sends zero speed and zero turn at step 305 and reaches measured
+distance 0.168569148 m and heading 0.096337080 rad, with native acknowledgement
+and strict success. The independently recomputed distance is 0.168569153 m.
+Layout 613/112 transport passes after 559 commands at distance 0.154068466 m
+and heading 0.050382137 rad. JEPA passes after 380 commands at distance
+0.161103931 m and heading -0.050469637 rad. All four trials have zero collisions.
+
+The compact [transition fixture](../tests/fixtures/arrival-heading-501-30.md)
+holds one exact common policy vector and three actual command responses. Its
+public planner check selects the measured successful zero-command transition.
+It replaces the invalid constant-residual response estimate for this heading
+case. This targeted probe did not capture full paired initial joint and velocity
+states. That check belongs to the full 20-trial comparison now running from
+source `aed6e70` with the predeclared acceptance rules.
+
+Both failed candidates stay preserved as development evidence. The full
+known-case gate remains pending. This targeted result does not close issues 15
+or 21 or open the fresh-layout comparison.
