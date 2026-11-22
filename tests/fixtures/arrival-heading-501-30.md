@@ -10,8 +10,16 @@ It repeats reverse speed -0.05 and turn +0.04. The recorded endpoint has native
 acknowledgement, distance 0.164792120 m, and heading 0.101741314 rad. That endpoint
 fails the unchanged strict heading bound of 0.1 rad.
 
-The public `plan_action` regression test replays the recorded command's measured
-motion exactly. For another command it adds the frozen model's motion difference
-from that command. The model weights come from `arrival-613-112.npz`.
-This checks command selection against the captured failure. It does not prove
-another command's native physics. Native runs must confirm the result.
+`arrival-heading-501-30-joint.npz` captures the subsequent native probe of the
+rejected `3d853af` controller. Its SHA256 is
+`9e454ceb7351c9f7c8a8cabb3d594dd62f9c4df8af791433b5c685720d77ab73`.
+It has the same pre-command state. Reverse -0.2 and turn +0.23 reaches distance
+0.148812359 m and heading 0.118715525 rad. The action improves distance and
+worsens heading. A frozen-model differential with a constant measured residual
+had predicted heading would improve. Native physics disproved that estimate.
+
+The public `plan_action` test checks that both captured heading-limited arrivals
+select zero speed and zero turn. It keeps the actual commands and native heading
+errors explicit. It makes no claim about the unmeasured zero-command endpoint.
+The frozen model weights come from `arrival-613-112.npz`. Native runs must confirm
+the brake result.
