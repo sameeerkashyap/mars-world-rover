@@ -31,7 +31,7 @@ def scan_costmap(scan):
     return hard * 100 + soft * 0.05
 
 
-def scan_waypoint(costmap, goal):
+def scan_waypoint(costmap, goal, previous_waypoint=None):
     # shortcut: the local grid can stall near tight goals, add calibrated precision tracking before tight-clearance use.
     grid = costmap[::2, ::2].tolist()
     start = (25, 25)
@@ -56,6 +56,17 @@ def scan_waypoint(costmap, goal):
                 distance[nr, nc] = candidate
                 parent[nr, nc] = point
                 heapq.heappush(queue, (candidate, (nr, nc)))
+    if previous_waypoint is not None and goal.norm() > 1.2:
+        try:
+            previous = torch.as_tensor(previous_waypoint, device=goal.device, dtype=goal.dtype)
+        except (TypeError, ValueError, RuntimeError):
+            previous = goal.new_empty(0)
+        if (previous.shape == (2,) and torch.isfinite(previous).all()
+                and (previous.abs() <= 2.5).all() and previous.norm() > 0.6):
+            fine = ((previous + 2.5) / 0.05).round().long()
+            coarse = (previous / 0.1).round().long() + 25
+            if costmap[fine[1], fine[0]] < 100 and (int(coarse[1]), int(coarse[0])) in distance:
+                return previous
     gx, gy = goal.tolist()
     end = min(distance, key=lambda point: math.hypot((point[1] - 25) * 0.1 - gx,
                                                     (point[0] - 25) * 0.1 - gy) + 0.05 * distance[point])
@@ -74,7 +85,7 @@ def scan_waypoint(costmap, goal):
 
 
 @torch.inference_mode()
-def plan_action(model, state, horizon=20, align_heading=False, height_scan=None, terrain_cost=None, hold_reached_goal=True, diagnostics=None):
+def plan_action(model, state, horizon=20, align_heading=False, height_scan=None, terrain_cost=None, hold_reached_goal=True, diagnostics=None, previous_waypoint=None):
     if state.shape != (1, 5) or not torch.isfinite(state).all() or horizon < 1:
         raise ValueError("Planning needs one finite five-field state and a positive horizon")
     if terrain_cost is not None and height_scan is None:
@@ -108,7 +119,7 @@ def plan_action(model, state, horizon=20, align_heading=False, height_scan=None,
     if risk_map is not None and not align_heading:
         angle = state[0, 3] * torch.pi
         goal = state[0, 2] / 0.11 * torch.stack((angle.cos(), angle.sin()))
-        waypoint = scan_waypoint(risk_map, goal)
+        waypoint = scan_waypoint(risk_map, goal, previous_waypoint=None if centering else previous_waypoint)
         if waypoint is None:
             if diagnostics is not None:
                 diagnostics["reason"] = "start_blocked"

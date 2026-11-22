@@ -10,6 +10,73 @@ from scripts.train_rover_baseline import GoalDynamics, predict, relative_motion
 
 
 class RoverPlannerTests(unittest.TestCase):
+    def test_captured_611_reachable_waypoint_prevents_turn_reversal(self):
+        folder = Path(__file__).parent / "fixtures"
+        model = GoalDynamics()
+        with np.load(folder / "arrival-613-112.npz") as weights:
+            model.load_state_dict({key: torch.from_numpy(weights[key]) for key in model.state_dict()})
+        model.eval()
+        with np.load(folder / "waypoint-611-110.npz") as capture:
+            policy = torch.from_numpy(capture["policy"])
+            delta = capture["world_waypoint_m"][0] - capture["position_w"][1, :2]
+            c, s = np.cos(capture["yaw_rad"][1]), np.sin(capture["yaw_rad"][1])
+            previous = policy.new_tensor([c * delta[0] + s * delta[1], -s * delta[0] + c * delta[1]])
+            before = plan_action(model, policy[:1, :5], height_scan=policy[0, 5:])
+            diagnostics = {}
+            baseline = plan_action(model, policy[1:, :5], height_scan=policy[1, 5:], diagnostics=diagnostics)
+            torch.testing.assert_close(before[0], torch.from_numpy(capture["command"][0]))
+            torch.testing.assert_close(baseline[0], torch.from_numpy(capture["command"][1]))
+        self.assertLess(float(before[0, 1] * baseline[0, 1]), 0)
+        retained = {}
+        actual = plan_action(model, policy[1:, :5], height_scan=policy[1, 5:], diagnostics=retained,
+                             previous_waypoint=previous)
+        self.assertGreater(float(before[0, 1] * actual[0, 1]), 0)
+        torch.testing.assert_close(policy.new_tensor(retained["waypoint_m"]), previous)
+        self.assertEqual(retained["candidate_count"], diagnostics["candidate_count"])
+        self.assertEqual(retained["safe_count"], diagnostics["safe_count"])
+        self.assertLess(retained["selected_measured_risk"], 100)
+
+    def test_previous_waypoint_requires_current_fine_cell_and_graph_reachability(self):
+        cost = torch.zeros((101, 101))
+        goal = torch.tensor([9., 0.])
+        previous = torch.tensor([1.05, .05])
+        torch.testing.assert_close(scan_waypoint(cost, goal, previous), previous)
+        for hint in ([2.500001, 0.], [float("nan"), 0.], [float("inf"), 0.], [.6, 0.],
+                     [0., 0.], [1.], [[1., 0.]], ["invalid", 0.]):
+            with self.subTest(hint=hint):
+                torch.testing.assert_close(scan_waypoint(cost, goal, hint), scan_waypoint(cost, goal))
+        fine_blocked = cost.clone()
+        fine_blocked[51, 71] = 100
+        disconnected = cost.clone()
+        disconnected[:, 60] = 100
+        for changed in (fine_blocked, disconnected):
+            torch.testing.assert_close(scan_waypoint(changed, goal, previous), scan_waypoint(changed, goal))
+        for nearby in (torch.tensor([1.2, 0.]), torch.tensor([.5, 0.])):
+            torch.testing.assert_close(scan_waypoint(cost, nearby, previous), scan_waypoint(cost, nearby))
+        self.assertIsNone(scan_waypoint(torch.full_like(cost, 100), goal, previous))
+
+    def test_waypoint_hint_keeps_precision_modes_and_unsafe_stop_unchanged(self):
+        model = GoalDynamics()
+        scan = torch.zeros(10201)
+        previous = torch.tensor([-1., 1.])
+        for distance, heading, align in ((1.2, .4, False), (.15, .4, False), (9., .4, True),
+                                         (.179, .01, False)):
+            state = torch.tensor([[0., 0., distance * .11, .2, heading]])
+            torch.testing.assert_close(plan_action(model, state, height_scan=scan, align_heading=align,
+                                                   previous_waypoint=previous),
+                                       plan_action(model, state, height_scan=scan, align_heading=align))
+
+        class OutsideModel(GoalDynamics):
+            def motion(self, commands):
+                return commands.new_tensor([10., 0., 0.]).expand(len(commands), -1)
+
+        for measured, reason in ((scan, "no_safe_candidate"), (torch.full_like(scan, float("nan")), "start_blocked")):
+            diagnostics = {}
+            action = plan_action(OutsideModel(), torch.tensor([[0., 0., .99, 0., 0.]]),
+                                 height_scan=measured, previous_waypoint=previous, diagnostics=diagnostics)
+            torch.testing.assert_close(action, torch.zeros((1, 2)))
+            self.assertEqual(diagnostics["reason"], reason)
+
     def test_optional_decision_diagnostics_preserve_action_and_forecast_calls(self):
         class IdealModel(GoalDynamics):
             def motion(self, commands):
@@ -82,7 +149,8 @@ class RoverPlannerTests(unittest.TestCase):
                     stopped = predict(response, state, torch.zeros((1, 2)))
                     self.assertAlmostEqual(float(stopped[0, 2]) / 0.11, stopped_distance, places=7)
                     action = plan_action(model, state, height_scan=measured_scan, align_heading=align_heading,
-                                         terrain_cost=terrain_cost if measured_scan is not None else None)
+                                         terrain_cost=terrain_cost if measured_scan is not None else None,
+                                         previous_waypoint=torch.tensor([-1., 1.]))
                     next_state = predict(response, state, action)
                 self.assertEqual(scoring_calls, [])
                 self.assertLess(float(next_state[0, 2]) / 0.11, 0.18)

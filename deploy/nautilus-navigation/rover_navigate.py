@@ -106,19 +106,22 @@ class NavigationRecorderCfg(RecorderManagerBaseCfg):
     telemetry = RecorderTermCfg(class_type=NavigationSnapshot)
 
 
-def audit_forecast_action(forecast, model, state, scan, align_heading, hold_reached_goal):
+def audit_forecast_action(forecast, model, state, scan, align_heading, hold_reached_goal, previous_waypoint=None):
     mode, calls, candidates = forecast.mode, forecast.scoring_calls, forecast.scored_candidates
     try:
         forecast.mode = "transport" if mode == "jepa" else "jepa"
         return plan_action(model, state, align_heading=align_heading, height_scan=scan,
-                           terrain_cost=forecast.costs, hold_reached_goal=hold_reached_goal)
+                           terrain_cost=forecast.costs, hold_reached_goal=hold_reached_goal,
+                           **({"previous_waypoint": previous_waypoint} if "previous_waypoint" in inspect.signature(plan_action).parameters else {}))
     finally:
         forecast.mode, forecast.scoring_calls, forecast.scored_candidates = mode, calls, candidates
 
 
 def run_trial(env, model, seed, controller, output, forecast=None, audit_forecasts=False):
     supports_diagnostics = "diagnostics" in inspect.signature(plan_action).parameters
+    supports_previous_waypoint = "previous_waypoint" in inspect.signature(plan_action).parameters
     env.reset(seed=seed)
+    world_waypoint = None
     use_forecast = controller in ("jepa", "transport")
     hold_reached_goal = controller != "forward" and (controller == "model-hold" or not args.replay_plan)
     if use_forecast:
@@ -176,7 +179,13 @@ def run_trial(env, model, seed, controller, output, forecast=None, audit_forecas
             ready = use_forecast and forecast.ready
             ready_steps += int(ready)
             calls_before = forecast.scoring_calls if use_forecast else 0
-            diagnostics = {} if decisions is not None else None
+            pre = samples[-1]
+            c, s = np.cos(pre["yaw"]), np.sin(pre["yaw"])
+            previous_waypoint = None
+            if world_waypoint is not None:
+                dx, dy = np.asarray(world_waypoint) - pre["position"][:2]
+                previous_waypoint = state.new_tensor([c * dx + s * dy, -s * dx + c * dy])
+            diagnostics = {} if decisions is not None or supports_previous_waypoint else None
             if controller == "forward":
                 action = torch.tensor([[0.65, 0.0]])
                 if diagnostics is not None:
@@ -186,16 +195,28 @@ def run_trial(env, model, seed, controller, output, forecast=None, audit_forecas
                                      height_scan=scan if controller in ("model", "model-hold", "jepa", "transport") else None,
                                      terrain_cost=forecast.costs if ready else None,
                                      hold_reached_goal=hold_reached_goal,
-                                     **({"diagnostics": diagnostics} if supports_diagnostics else {}))
+                                     **({"diagnostics": diagnostics} if supports_diagnostics else {}),
+                                     **({"previous_waypoint": previous_waypoint} if supports_previous_waypoint else {}))
                 if diagnostics is not None and not supports_diagnostics:
                     diagnostics.update(reason="legacy_planner", waypoint_m=None, forecast_applied=bool(use_forecast and forecast.scoring_calls > calls_before))
+            world_waypoint = None
+            if diagnostics is not None:
+                waypoint = diagnostics.get("waypoint_m")
+                diagnostics["world_waypoint_m"] = None
+                if waypoint is not None:
+                    x, y = waypoint
+                    diagnostics["world_waypoint_m"] = [pre["position"][0] + c * x - s * y,
+                                                       pre["position"][1] + s * x + c * y]
+                    if diagnostics.get("reason") == "selected" and diagnostics.get("mode") == "waypoint":
+                        world_waypoint = diagnostics["world_waypoint_m"]
             if use_forecast and forecast.device.type == "cuda":
                 torch.cuda.synchronize(forecast.device)
             planning_seconds = time.perf_counter() - start_planning
             planning_times.append(planning_seconds)
             alternate = None
             if audit_forecasts and use_forecast and forecast.scoring_calls > calls_before:
-                alternate = audit_forecast_action(forecast, model, state, scan, align_heading, hold_reached_goal)
+                alternate = audit_forecast_action(forecast, model, state, scan, align_heading, hold_reached_goal,
+                                                  previous_waypoint=previous_waypoint)
                 if forecast.device.type == "cuda":
                     torch.cuda.synchronize(forecast.device)
                 comparison_steps += 1
@@ -209,14 +230,6 @@ def run_trial(env, model, seed, controller, output, forecast=None, audit_forecas
             if not torch.isfinite(action).all() or action[:, 0].abs().max() > 0.7 or action[:, 1].abs().max() > 0.35:
                 raise RuntimeError("Controller produced an invalid action")
             if decisions is not None:
-                pre = samples[-1]
-                waypoint = diagnostics["waypoint_m"]
-                diagnostics["world_waypoint_m"] = None
-                if waypoint is not None:
-                    x, y = waypoint
-                    c, s = np.cos(pre["yaw"]), np.sin(pre["yaw"])
-                    diagnostics["world_waypoint_m"] = [pre["position"][0] + c * x - s * y,
-                                                       pre["position"][1] + s * x + c * y]
                 decisions["policy"][step] = obs["policy"][0].detach().cpu().numpy()
                 decisions["position_w"][step] = pre["position"]
                 decisions["yaw_rad"][step] = pre["yaw"]
