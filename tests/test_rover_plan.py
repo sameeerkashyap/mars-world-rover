@@ -10,6 +10,45 @@ from scripts.train_rover_baseline import GoalDynamics, predict, relative_motion
 
 
 class RoverPlannerTests(unittest.TestCase):
+    def test_optional_decision_diagnostics_preserve_action_and_forecast_calls(self):
+        class IdealModel(GoalDynamics):
+            def motion(self, commands):
+                return torch.stack((commands[:, 2] * .11 * .2, torch.zeros_like(commands[:, 2]),
+                                    commands[:, 3] * .2), dim=1)
+
+        model = IdealModel()
+        scan = torch.zeros(10201)
+        state = torch.tensor([[0., 0., .99, .1, .2]])
+        calls = []
+        def forecast(commands, lengths):
+            calls.append((commands.clone(), lengths.clone()))
+            return lengths.new_zeros(len(lengths), dtype=torch.float32)
+        expected = plan_action(model, state, height_scan=scan, terrain_cost=forecast)
+        diagnostics = {"stale": True}
+        actual = plan_action(model, state, height_scan=scan, terrain_cost=forecast, diagnostics=diagnostics)
+        torch.testing.assert_close(actual, expected, rtol=0, atol=0)
+        self.assertEqual(len(calls), 2)
+        for a, b in zip(calls[0], calls[1]):
+            torch.testing.assert_close(a, b, rtol=0, atol=0)
+        self.assertNotIn("stale", diagnostics)
+        self.assertEqual(diagnostics["reason"], "selected")
+        self.assertEqual(diagnostics["candidate_count"], 79)
+        self.assertGreater(diagnostics["safe_count"], 0)
+        self.assertTrue(diagnostics["forecast_applied"])
+        self.assertIsNotNone(diagnostics["waypoint_m"])
+        self.assertIn(diagnostics["turn_steps"], (0, 10, 20, 40, 60))
+        self.assertGreaterEqual(diagnostics["top_cost_gap"], 0)
+        centering = torch.tensor([[.15, 0., .179 * .11, 0., .01]])
+        plan_action(model, centering, height_scan=scan, terrain_cost=forecast, diagnostics=diagnostics)
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(diagnostics["forecast_reason"], "reached_goal")
+        for current, measured, reason in ((torch.tensor([[0., 0., .01, 0., 0.]]), scan, "goal_hold"),
+                                          (state, torch.full_like(scan, float("nan")), "start_blocked")):
+            plan_action(model, current, height_scan=measured, diagnostics=diagnostics)
+            self.assertEqual(diagnostics["reason"], reason)
+            self.assertFalse(diagnostics["forecast_applied"])
+            self.assertEqual(diagnostics["candidate_count"], 0)
+
     def test_captured_arrivals_stay_inside_goal_during_acknowledgement(self):
         with np.load(Path(__file__).parent / "fixtures/arrival-613-112.npz") as capture:
             translating = torch.from_numpy(capture["states"])

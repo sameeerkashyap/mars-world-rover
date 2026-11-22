@@ -1,0 +1,831 @@
+{
+  "checkpoint_sha256": "76953ac81e383a6000d9b26bf8026b5049f4ce768831bd48506dea31d7649283",
+  "planner_sha256": "0c12c0c42059a972ad7b67bff16f2831369291e90d2cc456fa19cb8e44d73415",
+  "limits": "Only the last pre-command scan is saved. Scan-only scoring omits historical forecasts. Reachability and candidates use the measured local mask and frozen learned motion, not physics. A final scan cannot prove an earlier route, global reachability, repeated waypoint selection, or that a longer committed turn is safe on future scans.",
+  "trials": [
+    {
+      "trace": "/private/tmp/rover-wayfinder/confirmation-raw/fresh-test-rocks-604/mars-rover-jepa-confirmation-20261122-v1-rg5hp/seed-103-jepa.csv",
+      "sha256": {
+        "seed-103-jepa.csv": "d9fb29ae24552b4d8ab1f890949a290c465850c5db33addca32c87e71943bb8c",
+        "seed-103-jepa.json": "26a206a230a0e0cbfff4e1bc925c5fd6db058960e637ef9c6ec8b469ddeed03a",
+        "seed-103-jepa-scan.npz": "dca1116e32f6411d2000d0239c6513f14a6726b79060eb18b73916eadba4c89a"
+      },
+      "scan_pre_command_step": 744,
+      "final_step": 745,
+      "state": [
+        0.15000000596046448,
+        0.3499999940395355,
+        0.3559395968914032,
+        0.017323626205325127,
+        -0.015961240977048874
+      ],
+      "native_timeout": true,
+      "native_success": false,
+      "collision": false,
+      "verified_success": false,
+      "planning_mode": "route",
+      "final_distance_m": 3.2356884479522705,
+      "route": {
+        "goal_xy_m": [
+          3.2310237884521484,
+          0.17601832747459412
+        ],
+        "goal_in_scan": false,
+        "goal_reachable": null,
+        "goal_cell_hard_blocked": null,
+        "start_hard_blocked": false,
+        "hard_blocked_fraction": 0.7821782231330872,
+        "remaining_center_clearance_m": 0.3499999940395355,
+        "reachable_cells": 467,
+        "closest_reachable_goal_distance_m": 2.0558353986048683,
+        "waypoint_m": [
+          0.5,
+          -1.100000023841858
+        ]
+      },
+      "candidates": {
+        "standard": {
+          "count": 79,
+          "safe": 48,
+          "safe_forward_first": 18,
+          "best_first_action": [
+            0.0,
+            -0.3499999940395355
+          ],
+          "best_follow_action": [
+            0.3499999940395355,
+            0.0
+          ],
+          "best_turn_steps": 40,
+          "best_endpoint_m": [
+            0.035984136164188385,
+            -0.8281500935554504
+          ],
+          "best_waypoint_error_m": 0.5377854108810425,
+          "best_cost": 0.5377854108810425,
+          "best_forward_first_error_m": 1.0015205144882202
+        },
+        "dense_turn_duration": {
+          "count": 303,
+          "safe": 102,
+          "safe_forward_first": 18,
+          "best_first_action": [
+            0.0,
+            -0.3499999940395355
+          ],
+          "best_follow_action": [
+            0.6499999761581421,
+            0.0
+          ],
+          "best_turn_steps": 30,
+          "best_endpoint_m": [
+            0.6318067908287048,
+            -1.352212905883789
+          ],
+          "best_waypoint_error_m": 0.28457751870155334,
+          "best_cost": 0.3345775306224823,
+          "best_forward_first_error_m": 1.0015205144882202
+        }
+      },
+      "scan_only_action": [
+        0.0,
+        -0.3499999940395355
+      ],
+      "recorded_final_action": [
+        0.0,
+        -0.3499999940395355
+      ],
+      "last_100_steps": {
+        "steps": 100,
+        "turn_only_steps": 48,
+        "turn_sign_changes": 86,
+        "yaw_range_rad": 0.16465723514556885,
+        "net_motion_m": 0.027599125939102184,
+        "path_length_m": 0.11087460254212012,
+        "distance_reduction_m": 0.027132034301757812,
+        "longest_turn_only_run_all_steps": 31
+      }
+    },
+    {
+      "trace": "/private/tmp/rover-wayfinder/confirmation-raw/fresh-test-rocks-604/mars-rover-jepa-confirmation-20261122-v1-rg5hp/seed-103-transport.csv",
+      "sha256": {
+        "seed-103-transport.csv": "1bd75b72e30b1dc007f375f86a6455c4a8d68cb29c9328b44abdf09c06cf0025",
+        "seed-103-transport.json": "ebab691c55212a40b798e5274f8cd82f21929682321b702f701891670b304d59",
+        "seed-103-transport-scan.npz": "bd3fff4aacd39ff1320eddd044f6af327c230b21b838dd0f87d1246991a83ec1"
+      },
+      "scan_pre_command_step": 744,
+      "final_step": 745,
+      "state": [
+        0.15000000596046448,
+        0.3499999940395355,
+        0.3548489212989807,
+        0.019328007474541664,
+        -0.010252189822494984
+      ],
+      "native_timeout": true,
+      "native_success": false,
+      "collision": false,
+      "verified_success": false,
+      "planning_mode": "route",
+      "final_distance_m": 3.2273073196411133,
+      "route": {
+        "goal_xy_m": [
+          3.219954252243042,
+          0.19575859606266022
+        ],
+        "goal_in_scan": false,
+        "goal_reachable": null,
+        "goal_cell_hard_blocked": null,
+        "start_hard_blocked": false,
+        "hard_blocked_fraction": 0.7880600094795227,
+        "remaining_center_clearance_m": 0.25,
+        "reachable_cells": 435,
+        "closest_reachable_goal_distance_m": 2.0624169937620365,
+        "waypoint_m": [
+          0.5,
+          -1.100000023841858
+        ]
+      },
+      "candidates": {
+        "standard": {
+          "count": 79,
+          "safe": 48,
+          "safe_forward_first": 18,
+          "best_first_action": [
+            0.0,
+            -0.3499999940395355
+          ],
+          "best_follow_action": [
+            0.3499999940395355,
+            0.0
+          ],
+          "best_turn_steps": 40,
+          "best_endpoint_m": [
+            0.03598494827747345,
+            -0.8281539678573608
+          ],
+          "best_waypoint_error_m": 0.5377827286720276,
+          "best_cost": 0.5877827405929565,
+          "best_forward_first_error_m": 1.0015223026275635
+        },
+        "dense_turn_duration": {
+          "count": 303,
+          "safe": 104,
+          "safe_forward_first": 18,
+          "best_first_action": [
+            0.0,
+            -0.3499999940395355
+          ],
+          "best_follow_action": [
+            0.6499999761581421,
+            0.0
+          ],
+          "best_turn_steps": 30,
+          "best_endpoint_m": [
+            0.6318070888519287,
+            -1.352218508720398
+          ],
+          "best_waypoint_error_m": 0.28458264470100403,
+          "best_cost": 0.334582656621933,
+          "best_forward_first_error_m": 1.0015223026275635
+        }
+      },
+      "scan_only_action": [
+        0.0,
+        -0.3499999940395355
+      ],
+      "recorded_final_action": [
+        0.0,
+        -0.3499999940395355
+      ],
+      "last_100_steps": {
+        "steps": 100,
+        "turn_only_steps": 47,
+        "turn_sign_changes": 87,
+        "yaw_range_rad": 0.15021556615829468,
+        "net_motion_m": 0.039784922316608115,
+        "path_length_m": 0.13910146050381678,
+        "distance_reduction_m": 0.029438018798828125,
+        "longest_turn_only_run_all_steps": 31
+      }
+    },
+    {
+      "trace": "/private/tmp/rover-wayfinder/confirmation-raw/fresh-test-rocks-611/mars-rover-jepa-confirmation-20261122-v1-rg5hp/seed-110-jepa.csv",
+      "sha256": {
+        "seed-110-jepa.csv": "351557c3317aedb7bfa5007a8e2868e564514be06ae8af896cd74a372794ee51",
+        "seed-110-jepa.json": "5efad08bd89c8200578bfca6560d376b96e4ce15b4266155eb60687b5b241650",
+        "seed-110-jepa-scan.npz": "06bd0965f8a9580c0213851566c67beb6312f41dfb1c75ba4025cd511da6540a"
+      },
+      "scan_pre_command_step": 744,
+      "final_step": 745,
+      "state": [
+        0.0,
+        0.3499999940395355,
+        0.8926541805267334,
+        -0.0282521340996027,
+        0.5251824259757996
+      ],
+      "native_timeout": true,
+      "native_success": false,
+      "collision": false,
+      "verified_success": false,
+      "planning_mode": "route",
+      "final_distance_m": 8.114514350891113,
+      "route": {
+        "goal_xy_m": [
+          8.083094596862793,
+          -0.7193186283111572
+        ],
+        "goal_in_scan": false,
+        "goal_reachable": null,
+        "goal_cell_hard_blocked": null,
+        "start_hard_blocked": false,
+        "hard_blocked_fraction": 0.5357317924499512,
+        "remaining_center_clearance_m": 1.149999976158142,
+        "reachable_cells": 1218,
+        "closest_reachable_goal_distance_m": 6.34451553639568,
+        "waypoint_m": [
+          0.6000000238418579,
+          -1.0
+        ]
+      },
+      "candidates": {
+        "standard": {
+          "count": 79,
+          "safe": 68,
+          "safe_forward_first": 27,
+          "best_first_action": [
+            0.0,
+            -0.3499999940395355
+          ],
+          "best_follow_action": [
+            0.3499999940395355,
+            0.0
+          ],
+          "best_turn_steps": 20,
+          "best_endpoint_m": [
+            0.5905503630638123,
+            -0.5683127045631409
+          ],
+          "best_waypoint_error_m": 0.43179070949554443,
+          "best_cost": 0.43179070949554443,
+          "best_forward_first_error_m": 0.7356173992156982
+        },
+        "dense_turn_duration": {
+          "count": 303,
+          "safe": 264,
+          "safe_forward_first": 27,
+          "best_first_action": [
+            0.0,
+            -0.3499999940395355
+          ],
+          "best_follow_action": [
+            0.6499999761581421,
+            0.0
+          ],
+          "best_turn_steps": 27,
+          "best_endpoint_m": [
+            0.7735778093338013,
+            -1.2725423574447632
+          ],
+          "best_waypoint_error_m": 0.32312318682670593,
+          "best_cost": 0.32312318682670593,
+          "best_forward_first_error_m": 0.7356173992156982
+        }
+      },
+      "scan_only_action": [
+        0.0,
+        -0.3499999940395355
+      ],
+      "recorded_final_action": [
+        0.0,
+        -0.3499999940395355
+      ],
+      "last_100_steps": {
+        "steps": 100,
+        "turn_only_steps": 100,
+        "turn_sign_changes": 93,
+        "yaw_range_rad": 0.12658923864364624,
+        "net_motion_m": 0.0696192813166095,
+        "path_length_m": 0.1183829315863597,
+        "distance_reduction_m": 0.06961250305175781,
+        "longest_turn_only_run_all_steps": 716
+      }
+    },
+    {
+      "trace": "/private/tmp/rover-wayfinder/confirmation-raw/fresh-test-rocks-611/mars-rover-jepa-confirmation-20261122-v1-rg5hp/seed-110-transport.csv",
+      "sha256": {
+        "seed-110-transport.csv": "2831a60cde82c19608eb9b9f27b95474453f989c9de1b4f8bf2d40d67403aa9a",
+        "seed-110-transport.json": "29eeb9151179eff42cd3442c3b5eb0893a68118878efbf6b05b303697c2a83c7",
+        "seed-110-transport-scan.npz": "b8b6a116a07206da703bb106cc4e2e15648fdf2d5d2915ba74ce5ddf20f2e58a"
+      },
+      "scan_pre_command_step": 744,
+      "final_step": 745,
+      "state": [
+        0.0,
+        0.3499999940395355,
+        0.8839157819747925,
+        -0.030357789248228073,
+        0.5208724141120911
+      ],
+      "native_timeout": true,
+      "native_success": false,
+      "collision": false,
+      "verified_success": false,
+      "planning_mode": "route",
+      "final_distance_m": 8.03639030456543,
+      "route": {
+        "goal_xy_m": [
+          7.999080657958984,
+          -0.7652082443237305
+        ],
+        "goal_in_scan": false,
+        "goal_reachable": null,
+        "goal_cell_hard_blocked": null,
+        "start_hard_blocked": false,
+        "hard_blocked_fraction": 0.5441623330116272,
+        "remaining_center_clearance_m": 1.0500000715255737,
+        "reachable_cells": 1199,
+        "closest_reachable_goal_distance_m": 6.255036233246476,
+        "waypoint_m": [
+          0.5,
+          -1.0
+        ]
+      },
+      "candidates": {
+        "standard": {
+          "count": 79,
+          "safe": 67,
+          "safe_forward_first": 27,
+          "best_first_action": [
+            0.0,
+            -0.3499999940395355
+          ],
+          "best_follow_action": [
+            0.3499999940395355,
+            0.0
+          ],
+          "best_turn_steps": 20,
+          "best_endpoint_m": [
+            0.5905503630638123,
+            -0.5683162212371826
+          ],
+          "best_waypoint_error_m": 0.4410785138607025,
+          "best_cost": 0.4410785138607025,
+          "best_forward_first_error_m": 0.7583920955657959
+        },
+        "dense_turn_duration": {
+          "count": 303,
+          "safe": 259,
+          "safe_forward_first": 27,
+          "best_first_action": [
+            0.0,
+            -0.3499999940395355
+          ],
+          "best_follow_action": [
+            0.3499999940395355,
+            0.0
+          ],
+          "best_turn_steps": 29,
+          "best_endpoint_m": [
+            0.3627820611000061,
+            -0.7357803583145142
+          ],
+          "best_waypoint_error_m": 0.29772600531578064,
+          "best_cost": 0.29772600531578064,
+          "best_forward_first_error_m": 0.7583920955657959
+        }
+      },
+      "scan_only_action": [
+        0.0,
+        -0.3499999940395355
+      ],
+      "recorded_final_action": [
+        0.0,
+        -0.3499999940395355
+      ],
+      "last_100_steps": {
+        "steps": 100,
+        "turn_only_steps": 100,
+        "turn_sign_changes": 91,
+        "yaw_range_rad": 0.14716368913650513,
+        "net_motion_m": 0.003037784294820307,
+        "path_length_m": 0.1688914850239646,
+        "distance_reduction_m": 0.0030384063720703125,
+        "longest_turn_only_run_all_steps": 716
+      }
+    },
+    {
+      "trace": "/private/tmp/rover-wayfinder/confirmation-raw/fresh-test-rocks-614/mars-rover-jepa-confirmation-20261122-v1-rg5hp/seed-113-jepa.csv",
+      "sha256": {
+        "seed-113-jepa.csv": "d61dff8f946481470bb975155148dacf1dccebffd8242c7ecd707c3fb41fa57c",
+        "seed-113-jepa.json": "509957c479757c23aa13f5b406468017f2c2150d3647d3373348f224c2c8526d",
+        "seed-113-jepa-scan.npz": "58c45c8e69e14cf43897f3848aab2741d8dfbe0168f7bc47943078520b7b1173"
+      },
+      "scan_pre_command_step": 744,
+      "final_step": 745,
+      "state": [
+        0.0,
+        0.3499999940395355,
+        0.9640681147575378,
+        -0.026914725080132484,
+        0.866583526134491
+      ],
+      "native_timeout": true,
+      "native_success": false,
+      "collision": false,
+      "verified_success": false,
+      "planning_mode": "route",
+      "final_distance_m": 8.761691093444824,
+      "route": {
+        "goal_xy_m": [
+          8.732943534851074,
+          -0.7401797771453857
+        ],
+        "goal_in_scan": false,
+        "goal_reachable": null,
+        "goal_cell_hard_blocked": null,
+        "start_hard_blocked": false,
+        "hard_blocked_fraction": 0.6294481158256531,
+        "remaining_center_clearance_m": 0.30000001192092896,
+        "reachable_cells": 966,
+        "closest_reachable_goal_distance_m": 6.999068575005819,
+        "waypoint_m": [
+          0.30000001192092896,
+          -1.100000023841858
+        ]
+      },
+      "candidates": {
+        "standard": {
+          "count": 79,
+          "safe": 44,
+          "safe_forward_first": 9,
+          "best_first_action": [
+            0.0,
+            -0.3499999940395355
+          ],
+          "best_follow_action": [
+            0.3499999940395355,
+            0.0
+          ],
+          "best_turn_steps": 40,
+          "best_endpoint_m": [
+            0.030572306364774704,
+            -0.8280187249183655
+          ],
+          "best_waypoint_error_m": 0.38283824920654297,
+          "best_cost": 0.4328382611274719,
+          "best_forward_first_error_m": 1.0797315835952759
+        },
+        "dense_turn_duration": {
+          "count": 303,
+          "safe": 146,
+          "safe_forward_first": 9,
+          "best_first_action": [
+            0.0,
+            -0.3499999940395355
+          ],
+          "best_follow_action": [
+            0.3499999940395355,
+            0.0
+          ],
+          "best_turn_steps": 34,
+          "best_endpoint_m": [
+            0.21645860373973846,
+            -0.7941915392875671
+          ],
+          "best_waypoint_error_m": 0.3170141875743866,
+          "best_cost": 0.36701419949531555,
+          "best_forward_first_error_m": 1.0797315835952759
+        }
+      },
+      "scan_only_action": [
+        0.0,
+        -0.3499999940395355
+      ],
+      "recorded_final_action": [
+        0.0,
+        -0.3499999940395355
+      ],
+      "last_100_steps": {
+        "steps": 100,
+        "turn_only_steps": 100,
+        "turn_sign_changes": 94,
+        "yaw_range_rad": 0.14413690567016602,
+        "net_motion_m": 0.04535113958459136,
+        "path_length_m": 0.15568908122213176,
+        "distance_reduction_m": 0.039038658142089844,
+        "longest_turn_only_run_all_steps": 745
+      }
+    },
+    {
+      "trace": "/private/tmp/rover-wayfinder/confirmation-raw/fresh-test-rocks-614/mars-rover-jepa-confirmation-20261122-v1-rg5hp/seed-113-transport.csv",
+      "sha256": {
+        "seed-113-transport.csv": "2979c37c56e1486023f9a1549525744f5bff65c38339ee716a7291dd85b5d723",
+        "seed-113-transport.json": "c480f920e9cab6488270fe32522b8062c6849c27dd030cb0dbdcfc389a71e680",
+        "seed-113-transport-scan.npz": "58c45c8e69e14cf43897f3848aab2741d8dfbe0168f7bc47943078520b7b1173"
+      },
+      "scan_pre_command_step": 744,
+      "final_step": 745,
+      "state": [
+        0.0,
+        0.3499999940395355,
+        0.9640681147575378,
+        -0.026914725080132484,
+        0.866583526134491
+      ],
+      "native_timeout": true,
+      "native_success": false,
+      "collision": false,
+      "verified_success": false,
+      "planning_mode": "route",
+      "final_distance_m": 8.761691093444824,
+      "route": {
+        "goal_xy_m": [
+          8.732943534851074,
+          -0.7401797771453857
+        ],
+        "goal_in_scan": false,
+        "goal_reachable": null,
+        "goal_cell_hard_blocked": null,
+        "start_hard_blocked": false,
+        "hard_blocked_fraction": 0.6294481158256531,
+        "remaining_center_clearance_m": 0.30000001192092896,
+        "reachable_cells": 966,
+        "closest_reachable_goal_distance_m": 6.999068575005819,
+        "waypoint_m": [
+          0.30000001192092896,
+          -1.100000023841858
+        ]
+      },
+      "candidates": {
+        "standard": {
+          "count": 79,
+          "safe": 44,
+          "safe_forward_first": 9,
+          "best_first_action": [
+            0.0,
+            -0.3499999940395355
+          ],
+          "best_follow_action": [
+            0.3499999940395355,
+            0.0
+          ],
+          "best_turn_steps": 40,
+          "best_endpoint_m": [
+            0.030572306364774704,
+            -0.8280187249183655
+          ],
+          "best_waypoint_error_m": 0.38283824920654297,
+          "best_cost": 0.4328382611274719,
+          "best_forward_first_error_m": 1.0797315835952759
+        },
+        "dense_turn_duration": {
+          "count": 303,
+          "safe": 146,
+          "safe_forward_first": 9,
+          "best_first_action": [
+            0.0,
+            -0.3499999940395355
+          ],
+          "best_follow_action": [
+            0.3499999940395355,
+            0.0
+          ],
+          "best_turn_steps": 34,
+          "best_endpoint_m": [
+            0.21645860373973846,
+            -0.7941915392875671
+          ],
+          "best_waypoint_error_m": 0.3170141875743866,
+          "best_cost": 0.36701419949531555,
+          "best_forward_first_error_m": 1.0797315835952759
+        }
+      },
+      "scan_only_action": [
+        0.0,
+        -0.3499999940395355
+      ],
+      "recorded_final_action": [
+        0.0,
+        -0.3499999940395355
+      ],
+      "last_100_steps": {
+        "steps": 100,
+        "turn_only_steps": 100,
+        "turn_sign_changes": 94,
+        "yaw_range_rad": 0.14413690567016602,
+        "net_motion_m": 0.04535113958459136,
+        "path_length_m": 0.15568908122213176,
+        "distance_reduction_m": 0.039038658142089844,
+        "longest_turn_only_run_all_steps": 745
+      }
+    },
+    {
+      "trace": "/private/tmp/rover-wayfinder/confirmation-raw/fresh-test-rocks-615/mars-rover-jepa-confirmation-20261122-v1-rg5hp/seed-114-jepa.csv",
+      "sha256": {
+        "seed-114-jepa.csv": "232f76ffe2ce1c8c6dbe1d1af3bd481a7451dce7593ffb89a2b0a6905cf41c8b",
+        "seed-114-jepa.json": "2e975e90112ea5978fb0dc539f3ee3c0047803d33321dedc15236d1f51c9144a",
+        "seed-114-jepa-scan.npz": "074b7fc83fb0b39d2e152082d30de44d1f66cacbb84196df2fce8c828c12e6f0"
+      },
+      "scan_pre_command_step": 744,
+      "final_step": 745,
+      "state": [
+        0.0,
+        -0.3499999940395355,
+        0.4374840557575226,
+        0.007063013967126608,
+        0.5913420915603638
+      ],
+      "native_timeout": true,
+      "native_success": false,
+      "collision": false,
+      "verified_success": false,
+      "planning_mode": "route",
+      "final_distance_m": 3.9771134853363037,
+      "route": {
+        "goal_xy_m": [
+          3.976148843765259,
+          0.08824168890714645
+        ],
+        "goal_in_scan": false,
+        "goal_reachable": null,
+        "goal_cell_hard_blocked": null,
+        "start_hard_blocked": false,
+        "hard_blocked_fraction": 0.585138738155365,
+        "remaining_center_clearance_m": 1.1884864568710327,
+        "reachable_cells": 1078,
+        "closest_reachable_goal_distance_m": 2.390030423637934,
+        "waypoint_m": [
+          0.8999999761581421,
+          -0.800000011920929
+        ]
+      },
+      "candidates": {
+        "standard": {
+          "count": 79,
+          "safe": 68,
+          "safe_forward_first": 27,
+          "best_first_action": [
+            0.0,
+            -0.3499999940395355
+          ],
+          "best_follow_action": [
+            0.6499999761581421,
+            0.0
+          ],
+          "best_turn_steps": 20,
+          "best_endpoint_m": [
+            1.0515189170837402,
+            -1.0586684942245483
+          ],
+          "best_waypoint_error_m": 0.29977887868881226,
+          "best_cost": 0.3497788906097412,
+          "best_forward_first_error_m": 0.5391432046890259
+        },
+        "dense_turn_duration": {
+          "count": 303,
+          "safe": 262,
+          "safe_forward_first": 27,
+          "best_first_action": [
+            0.0,
+            -0.3499999940395355
+          ],
+          "best_follow_action": [
+            0.6499999761581421,
+            0.0
+          ],
+          "best_turn_steps": 21,
+          "best_endpoint_m": [
+            1.010973334312439,
+            -1.0971002578735352
+          ],
+          "best_waypoint_error_m": 0.31714925169944763,
+          "best_cost": 0.31714925169944763,
+          "best_forward_first_error_m": 0.5391432046890259
+        }
+      },
+      "scan_only_action": [
+        0.0,
+        -0.3499999940395355
+      ],
+      "recorded_final_action": [
+        0.0,
+        -0.3499999940395355
+      ],
+      "last_100_steps": {
+        "steps": 100,
+        "turn_only_steps": 100,
+        "turn_sign_changes": 79,
+        "yaw_range_rad": 0.1658567190170288,
+        "net_motion_m": 0.0672413665079533,
+        "path_length_m": 0.17553323508750154,
+        "distance_reduction_m": 0.0657956600189209,
+        "longest_turn_only_run_all_steps": 632
+      }
+    },
+    {
+      "trace": "/private/tmp/rover-wayfinder/confirmation-raw/fresh-test-rocks-615/mars-rover-jepa-confirmation-20261122-v1-rg5hp/seed-114-transport.csv",
+      "sha256": {
+        "seed-114-transport.csv": "568530547ae1b39dcf5658854fdfd970a87c9ab6ff2f442ea249e11c5c7c0004",
+        "seed-114-transport.json": "800e6f35957b083b25bf7104a85da18c52ef21c560fd4d4ba163f23723b66d11",
+        "seed-114-transport-scan.npz": "05235426662db27c88964d1975d28200038e7e70e0cb14e51935a782002c133c"
+      },
+      "scan_pre_command_step": 744,
+      "final_step": 745,
+      "state": [
+        0.0,
+        0.3499999940395355,
+        0.44242507219314575,
+        0.0016413097037002444,
+        0.5855622291564941
+      ],
+      "native_timeout": true,
+      "native_success": false,
+      "collision": false,
+      "verified_success": false,
+      "planning_mode": "route",
+      "final_distance_m": 4.020073413848877,
+      "route": {
+        "goal_xy_m": [
+          4.0219926834106445,
+          0.020738890394568443
+        ],
+        "goal_in_scan": false,
+        "goal_reachable": null,
+        "goal_cell_hard_blocked": null,
+        "start_hard_blocked": false,
+        "hard_blocked_fraction": 0.5807273983955383,
+        "remaining_center_clearance_m": 1.1768602132797241,
+        "reachable_cells": 1096,
+        "closest_reachable_goal_distance_m": 2.405205103398764,
+        "waypoint_m": [
+          0.8999999761581421,
+          -0.8999999761581421
+        ]
+      },
+      "candidates": {
+        "standard": {
+          "count": 79,
+          "safe": 68,
+          "safe_forward_first": 27,
+          "best_first_action": [
+            0.0,
+            -0.3499999940395355
+          ],
+          "best_follow_action": [
+            0.6499999761581421,
+            0.0
+          ],
+          "best_turn_steps": 20,
+          "best_endpoint_m": [
+            1.077436089515686,
+            -1.02805757522583
+          ],
+          "best_waypoint_error_m": 0.21882030367851257,
+          "best_cost": 0.26882031559944153,
+          "best_forward_first_error_m": 0.6510534882545471
+        },
+        "dense_turn_duration": {
+          "count": 303,
+          "safe": 264,
+          "safe_forward_first": 27,
+          "best_first_action": [
+            0.0,
+            -0.3499999940395355
+          ],
+          "best_follow_action": [
+            0.6499999761581421,
+            0.0
+          ],
+          "best_turn_steps": 22,
+          "best_endpoint_m": [
+            0.997108519077301,
+            -1.1056913137435913
+          ],
+          "best_waypoint_error_m": 0.22746208310127258,
+          "best_cost": 0.22746208310127258,
+          "best_forward_first_error_m": 0.6510534882545471
+        }
+      },
+      "scan_only_action": [
+        0.0,
+        -0.3499999940395355
+      ],
+      "recorded_final_action": [
+        0.0,
+        -0.3499999940395355
+      ],
+      "last_100_steps": {
+        "steps": 100,
+        "turn_only_steps": 100,
+        "turn_sign_changes": 81,
+        "yaw_range_rad": 0.16833984851837158,
+        "net_motion_m": 0.06459257941643641,
+        "path_length_m": 0.16444831732170012,
+        "distance_reduction_m": 0.06136512756347656,
+        "longest_turn_only_run_all_steps": 635
+      }
+    }
+  ]
+}

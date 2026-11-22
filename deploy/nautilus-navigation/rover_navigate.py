@@ -1,6 +1,7 @@
 """Evaluate learned-model planning and scripted forward motion in Isaac Sim."""
 
 import argparse
+from contextlib import ExitStack
 import csv
 import hashlib
 import inspect
@@ -11,6 +12,7 @@ import shutil
 import traceback
 import time
 
+import h5py
 from isaaclab.app import AppLauncher
 
 parser = argparse.ArgumentParser(description=__doc__)
@@ -27,6 +29,7 @@ parser.add_argument("--predictor-source", type=Path, default=Path("/opt/navigati
 parser.add_argument("--test-plan", type=Path)
 parser.add_argument("--replay-plan", type=Path)
 parser.add_argument("--phase", choices=("development", "fresh"), default="development")
+parser.add_argument("--record-decisions", action="store_true")
 AppLauncher.add_app_launcher_args(parser)
 args = parser.parse_args()
 if args.steps < 1 or len(set(args.seeds)) != len(args.seeds):
@@ -124,7 +127,15 @@ def run_trial(env, model, seed, controller, output, forecast=None, audit_forecas
     goal_hold_steps = 0
     comparison_steps = command_disagreements = 0
     result_path = output / f"seed-{seed}-{controller}"
-    with result_path.with_suffix(".csv").open("w") as handle:
+    with ExitStack() as recording, result_path.with_suffix(".csv").open("w") as handle:
+        decisions = recording.enter_context(h5py.File(str(result_path) + "-decisions.h5", "x")) if args.record_decisions else None
+        if decisions is not None:
+            decisions.attrs.update(schema="rover-plan-decisions-v1", steps_written=0, complete=False,
+                                   csv_step_offset=1, policy_fields="previous_speed,previous_turn,distance*0.11,bearing/pi,heading/pi,height_scan")
+            for name, shape in (("policy", (args.steps, obs["policy"].shape[1])), ("position_w", (args.steps, 3)),
+                                ("yaw_rad", (args.steps,)), ("command", (args.steps, 2))):
+                decisions.create_dataset(name, shape, dtype="f4", compression="lzf")
+            decisions.create_dataset("diagnostics", (args.steps,), dtype=h5py.string_dtype())
         writer = csv.writer(handle)
         writer.writerow(["step", "time_s", "x_m", "y_m", "z_m", "yaw_rad", "goal_x_m", "goal_y_m",
                          "distance_m", "heading_error_rad", "speed_command", "turn_command", "native_success", "collision", "planning_s", "forecast_ready", "goal_hold",
@@ -145,13 +156,16 @@ def run_trial(env, model, seed, controller, output, forecast=None, audit_forecas
             ready = use_forecast and forecast.ready
             ready_steps += int(ready)
             calls_before = forecast.scoring_calls if use_forecast else 0
+            diagnostics = {} if decisions is not None else None
             if controller == "forward":
                 action = torch.tensor([[0.65, 0.0]])
+                if diagnostics is not None:
+                    diagnostics.update(reason="scripted_forward", waypoint_m=None, forecast_applied=False)
             else:
                 action = plan_action(model, state, align_heading=align_heading,
                                      height_scan=scan if controller in ("model", "model-hold", "jepa", "transport") else None,
                                      terrain_cost=forecast.costs if ready else None,
-                                     hold_reached_goal=hold_reached_goal)
+                                     hold_reached_goal=hold_reached_goal, diagnostics=diagnostics)
             if use_forecast and forecast.device.type == "cuda":
                 torch.cuda.synchronize(forecast.device)
             planning_seconds = time.perf_counter() - start_planning
@@ -171,6 +185,21 @@ def run_trial(env, model, seed, controller, output, forecast=None, audit_forecas
             longest_stop = max(longest_stop, consecutive_stops)
             if not torch.isfinite(action).all() or action[:, 0].abs().max() > 0.7 or action[:, 1].abs().max() > 0.35:
                 raise RuntimeError("Controller produced an invalid action")
+            if decisions is not None:
+                pre = samples[-1]
+                waypoint = diagnostics["waypoint_m"]
+                diagnostics["world_waypoint_m"] = None
+                if waypoint is not None:
+                    x, y = waypoint
+                    c, s = np.cos(pre["yaw"]), np.sin(pre["yaw"])
+                    diagnostics["world_waypoint_m"] = [pre["position"][0] + c * x - s * y,
+                                                       pre["position"][1] + s * x + c * y]
+                decisions["policy"][step] = obs["policy"][0].detach().cpu().numpy()
+                decisions["position_w"][step] = pre["position"]
+                decisions["yaw_rad"][step] = pre["yaw"]
+                decisions["command"][step] = action[0].numpy()
+                decisions["diagnostics"][step] = json.dumps(diagnostics, allow_nan=False)
+                decisions.attrs["steps_written"] = step + 1
             obs, reward, terminated, truncated, _ = env.step(action.to(device))
             previous_action = action[0].detach().clone()
             sample = env.unwrapped.navigation_sample
@@ -189,6 +218,8 @@ def run_trial(env, model, seed, controller, output, forecast=None, audit_forecas
                 print(f"seed={seed} controller={controller} step={step + 1} distance={sample['distance_m']:.3f}m heading={sample['heading_error_rad']:.3f}rad", flush=True)
             if bool((terminated | truncated)[0]):
                 break
+        if decisions is not None:
+            decisions.attrs["complete"] = True
     final = samples[-1]
     np.savez_compressed(str(result_path) + "-scan.npz", initial=initial_scan, last=scan.numpy())
     success = final["termination"]["is_success"]
@@ -261,8 +292,8 @@ def main():
     cfg.seed = args.seeds[0]
     if args.terrain.startswith("test-rocks-"):
         layout_seed = int(args.terrain.removeprefix("test-rocks-"))
-        if plan is None or (args.phase != "fresh" and not args.replay_plan):
-            raise ValueError("Held-out layouts require the frozen fresh test plan")
+        if plan is None:
+            raise ValueError("Rock layouts require a frozen test plan")
         layout = output / "terrain"
         layout.mkdir()
         ground, faces, rocks, rock_faces = heldout_meshes(layout_seed)
@@ -287,6 +318,7 @@ def main():
                                    plan.get("counterbalance_order") and seed % 2 else plan["controllers"]
                                    for seed in args.seeds} if plan else None,
               "development_replay": bool(args.replay_plan),
+              "record_decisions": args.record_decisions,
               "frozen_test_plan": plan, "phase": args.phase,
               "forecast_scoring": {"weight": 0.25, "max_seconds": 5, "patches": "central 2x2 maximum", "alignment": "scan only"},
               "source_sha256": source_hashes,
