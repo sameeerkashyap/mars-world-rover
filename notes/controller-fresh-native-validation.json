@@ -1,0 +1,842 @@
+{
+  "scope": "Registered fresh original-versus-corrected controller comparison in fixed transport mode; no model retraining or JEPA superiority test",
+  "registered_integration_commit": "710f24a16ea2c864561d96689a32b5289beebb93",
+  "registration_comment_url": "https://github.com/sameeerkashyap/mars-world-rover/issues/18#issuecomment-7086964853",
+  "registration_comment_created_utc": "2026-11-22T22:38:09Z",
+  "source_commit": "aed6e7030de0c0cd17cd9fa0a303e7ec21e6cbe8",
+  "durable_run_root": "/data/runs/rover-controller-session/mars-rover-controller-session-a6000-20261122-v1-9gnkn/fresh-controller-aed6e70-transport-v1",
+  "collection_complete": true,
+  "independent_verification": true,
+  "native_trials": 40,
+  "registered_primary_test": {
+    "pairs": 20,
+    "minimum_success_gain": 0.1,
+    "two_sided_alpha": 0.05,
+    "maximum_mean_planning_s": 0.2,
+    "no_added_collision_per_pair": true
+  },
+  "primary_result": {
+    "pairs": 20,
+    "corrected_only_successes": 4,
+    "original_only_successes": 0,
+    "success_rate_gain": 0.2,
+    "exact_two_sided_p": 0.125,
+    "added_collision_pairs": 0,
+    "corrected_mean_planning_s": 0.053361405126026704,
+    "primary_passed": false
+  },
+  "summary": {
+    "original_native_strict_successes": 13,
+    "corrected_native_strict_successes": 17,
+    "original_collision_trials": 0,
+    "corrected_collision_trials": 0
+  },
+  "lost_original_successes": [],
+  "receipts": {
+    "session_root": "/data/runs/rover-controller-session/mars-rover-controller-session-a6000-20261122-v1-9gnkn",
+    "output_root": "/data/runs/rover-controller-session/mars-rover-controller-session-a6000-20261122-v1-9gnkn/fresh-controller-aed6e70-transport-v1",
+    "launch_root": "/data/runs/rover-controller-session/mars-rover-controller-session-a6000-20261122-v1-9gnkn/fresh-controller-launch-aed6e70-v1",
+    "full_raw_manifest": "/data/runs/rover-controller-session/mars-rover-controller-session-a6000-20261122-v1-9gnkn/fresh-controller-export-aed6e70-v1/full-raw-files-sha256.json",
+    "full_raw_manifest_sha256": "bb500706c8718975d8f95c38b490cf5a9ca46e12351f076de98173818053e031",
+    "export_index_sha256": "818a67d80fb670ed69c1a8f12538d78d6ae207a1a4375d0b5e5ecf2c9d7073fd",
+    "archive": "/data/runs/rover-controller-session/mars-rover-controller-session-a6000-20261122-v1-9gnkn/fresh-controller-export-aed6e70-v1/filtered-evidence.tar.gz",
+    "archive_sha256": "ac8169d754ec234ed683f3f21693e0a99358d2375df58038abf03da20cb20b8e",
+    "archive_bytes": 57398164,
+    "raw_files": 658,
+    "included_raw_files": 537,
+    "omitted_raw_files": 121,
+    "local_archive_sha256": "ac8169d754ec234ed683f3f21693e0a99358d2375df58038abf03da20cb20b8e",
+    "local_raw_files_matched": 537,
+    "launch_started_utc": "2026-11-22T22:39:45Z",
+    "launcher_sha256": "3033f1adb4e23ac89afa6842282ebb89882dcbf1a1996341a4c6313141ba06b1",
+    "prelaunch_stack_sha256": "b4bd94a3f3fe51194f85f09155297fd1af59b470a092bf52adb4aed4152e44bd",
+    "upload_source_check_sha256": "52041e9f387c36c8fe3eaced038ae4294319ed1189e70024f7aea09238653980",
+    "packages_sha256": "893f3f886f681312fc8691f165d0f1f94aa74ebdb5c9e78a9142f3e6c0d3d2d5",
+    "runtime_sha256": "b4bd94a3f3fe51194f85f09155297fd1af59b470a092bf52adb4aed4152e44bd",
+    "hardware_sha256": "de7cf49a6ce4ed78f7fe1390b3ef5693d4cfa35bd94b33bbe692fc79f99ef648",
+    "test_plan_sha256": "8b3715ccb5dcf303ad812922d64aea7a6c907585f2ffb8ed4cdd1772ed73482a",
+    "snapshot_manifest_sha256": "6a5342133f4851d50be9ed8c04f9560c928b20f524be84806ca3749239825666",
+    "execution_order_sha256": "039429ec321a373ecb6e261b027f971d2ba4ed572615282e70490c8748c834f1",
+    "host_verification_sha256": "c930f96208e59df8269ee54cd1b613aed5d294a76db130bdfadf03836a93c028",
+    "host_analysis_sha256": "12d8cb586258b414c8fac4f114a6a75564702982efd21b55f7c6f5a3974b190a",
+    "planners": {
+      "original": {
+        "commit": "815f19e8858bd47361a868fb7500e52d2449e76f",
+        "path": "planners/original/rover_plan.py",
+        "sha256": "0c12c0c42059a972ad7b67bff16f2831369291e90d2cc456fa19cb8e44d73415"
+      },
+      "corrected": {
+        "commit": "aed6e7030de0c0cd17cd9fa0a303e7ec21e6cbe8",
+        "path": "planners/corrected/rover_plan.py",
+        "sha256": "c8c6c37f007d62907e384bef80913792bfa446335a93ddacd9a3afaa1d07a497"
+      }
+    },
+    "frozen_inputs_and_sources_sha256": {
+      "jepa_checkpoint": "e28f932c1c5802556aa4432eba63c0c2c5aa82799ddde2f7bcaa42945d2a9079",
+      "terrain_checkpoint": "c6c523d7db30c1bc43b8c82e73305c1d0ab5ec37dc682763d8bd2b0ef694511b",
+      "motion_checkpoint": "76953ac81e383a6000d9b26bf8026b5049f4ce768831bd48506dea31d7649283",
+      "predictor_source": "81d53872f60477ed3191f14ab3c71ee74e914945df3fac1a1ee378b9905d4087",
+      "jepa_source": "3046f8982e96f2ced33b590faf0babfad85134b2f866de22434ba04dcf80de8d",
+      "motion_source": "a595821fde3ec2f776aad54374dd30e9421ff56f226bdcb0e9f43de88b1f9cad",
+      "readout_source": "712ec84776f7e31badae4a350fbf72dc74558c9410272681c2bd2706a14c6013",
+      "planner_source": "c8c6c37f007d62907e384bef80913792bfa446335a93ddacd9a3afaa1d07a497",
+      "runner_source": "e7423e3cf242ce425146e3addd6dea94587427baafcac3659227af44789b2df6",
+      "forecast_source": "56ef2d81c74d0762e9409eb9a1191fd6e98ac74924ca4948b4d570bf46a4edc4",
+      "terrain_source": "0c3ebfb674c8eb23613f10d4a8c9d1bf06d4f7e4aed0e9b53b52a5e2090c16ab",
+      "encoder_weights": "b938bf1bc15cd2ec0feacfe3a1bb553fe8ea9ca46a7e1d8d00217f29aef60cd9"
+    },
+    "runtime_actual": {
+      "cuda": "12.8",
+      "gpu": [
+        "NVIDIA RTX A6000, 615.71.10, 49140 MiB"
+      ],
+      "isaac_lab_sha": "ffff603eafc6b74264a5261cc0183d6a65390d78",
+      "isaac_lab_tags": [
+        "v3.0.0-beta2.patch1"
+      ],
+      "isaac_sim_build": null,
+      "isaac_sim_package": "6.0.1.0",
+      "packages": {
+        "gymnasium": "1.2.1",
+        "isaaclab": "6.1.14",
+        "isaaclab_physx": "1.1.3",
+        "isaaclab_rl": "0.5.5",
+        "isaaclab_tasks": "1.10.9",
+        "numpy": "2.3.1",
+        "skrl": "2.1.2",
+        "torch": "2.10.0+cu128",
+        "torchvision": "0.25.0+cu128"
+      },
+      "python": "3.12.13"
+    },
+    "pip_check_exit_code": 1,
+    "paired_initial_max_abs_difference": {
+      "position": 0,
+      "goal": 0,
+      "yaw": 0,
+      "heading_error_rad": 0,
+      "root_velocity": 0,
+      "joint_position": 0,
+      "joint_velocity": 0,
+      "finite_scan": 0
+    },
+    "paired_initial_arrays_exactly_equal": true,
+    "terrain_meshes_equal_registered_arrays": true,
+    "omissions_by_extension": {
+      ".h5": 40,
+      ".usd": 80,
+      "console.log": 1
+    }
+  },
+  "cases": [
+    {
+      "terrain": "test-rocks-701",
+      "seed": 200,
+      "controller": "transport",
+      "original": {
+        "steps": 745,
+        "native_strict_goal": false,
+        "native_success": false,
+        "terminal_flags": [
+          "time_limit"
+        ],
+        "final_distance_m": 6.5436623107904435,
+        "final_heading_error_rad": -0.961540937423706,
+        "collision": false,
+        "planning_mean_s": 0.03038071873030374,
+        "path_length_m": 4.3148137584022725,
+        "native_geometry_disagreement_steps": 0,
+        "csv_sha256": "a27dbfc9b77ddc3d6d78f9a782e4e8f3293392a375d15343774cdd5da1e524a9"
+      },
+      "corrected": {
+        "steps": 326,
+        "native_strict_goal": true,
+        "native_success": true,
+        "terminal_flags": [
+          "is_success"
+        ],
+        "final_distance_m": 0.1483206056964217,
+        "final_heading_error_rad": -0.07824492454528809,
+        "collision": false,
+        "planning_mean_s": 0.054598004371142074,
+        "path_length_m": 10.40514762064152,
+        "native_geometry_disagreement_steps": 1,
+        "csv_sha256": "5cb822daaaf5e2afdbf02e6e10cd4d3e03bc593c9632ddce3708804f9376e652"
+      }
+    },
+    {
+      "terrain": "test-rocks-702",
+      "seed": 201,
+      "controller": "transport",
+      "original": {
+        "steps": 745,
+        "native_strict_goal": false,
+        "native_success": false,
+        "terminal_flags": [
+          "time_limit"
+        ],
+        "final_distance_m": 3.8559591644821545,
+        "final_heading_error_rad": 1.6276657581329346,
+        "collision": false,
+        "planning_mean_s": 0.0295065334992309,
+        "path_length_m": 5.528857064560969,
+        "native_geometry_disagreement_steps": 0,
+        "csv_sha256": "7452eff05cc66cc3a94bb6efe69b35e3b85ee89797909fd4fc076d930a422db8"
+      },
+      "corrected": {
+        "steps": 745,
+        "native_strict_goal": false,
+        "native_success": false,
+        "terminal_flags": [
+          "time_limit"
+        ],
+        "final_distance_m": 3.6825562457895473,
+        "final_heading_error_rad": 2.2914140224456787,
+        "collision": false,
+        "planning_mean_s": 0.05115327406959802,
+        "path_length_m": 5.785574826886786,
+        "native_geometry_disagreement_steps": 0,
+        "csv_sha256": "c1130eda3835c0a7f3239f1c8f0cb4c715d4092457c91270abcd365da51a407b"
+      }
+    },
+    {
+      "terrain": "test-rocks-703",
+      "seed": 202,
+      "controller": "transport",
+      "original": {
+        "steps": 352,
+        "native_strict_goal": true,
+        "native_success": true,
+        "terminal_flags": [
+          "is_success"
+        ],
+        "final_distance_m": 0.14192301899374712,
+        "final_heading_error_rad": 0.08473086357116699,
+        "collision": false,
+        "planning_mean_s": 0.05492172679259966,
+        "path_length_m": 9.021137885658977,
+        "native_geometry_disagreement_steps": 1,
+        "csv_sha256": "0be378404047defe4fed36b68abac93248e151318aeb9283ac29ecf3b58a0f7c"
+      },
+      "corrected": {
+        "steps": 327,
+        "native_strict_goal": true,
+        "native_success": true,
+        "terminal_flags": [
+          "is_success"
+        ],
+        "final_distance_m": 0.129950586715379,
+        "final_heading_error_rad": 0.06635832786560059,
+        "collision": false,
+        "planning_mean_s": 0.05443894760866969,
+        "path_length_m": 9.064783277377403,
+        "native_geometry_disagreement_steps": 1,
+        "csv_sha256": "0818b8c3800e49d2e4a8a8e0f43907c130127129f2ed17b7c66098f7b1f57915"
+      }
+    },
+    {
+      "terrain": "test-rocks-704",
+      "seed": 203,
+      "controller": "transport",
+      "original": {
+        "steps": 330,
+        "native_strict_goal": true,
+        "native_success": true,
+        "terminal_flags": [
+          "is_success"
+        ],
+        "final_distance_m": 0.17476108466956877,
+        "final_heading_error_rad": -0.06802749633789062,
+        "collision": false,
+        "planning_mean_s": 0.05504535452419077,
+        "path_length_m": 9.096726823015866,
+        "native_geometry_disagreement_steps": 1,
+        "csv_sha256": "143689c273393ff6eb0124e47508dbc34d694bfd7074bed275e7e87b8eba1b78"
+      },
+      "corrected": {
+        "steps": 350,
+        "native_strict_goal": true,
+        "native_success": true,
+        "terminal_flags": [
+          "is_success"
+        ],
+        "final_distance_m": 0.17153098281134016,
+        "final_heading_error_rad": -0.08483624458312988,
+        "collision": false,
+        "planning_mean_s": 0.056571091088761544,
+        "path_length_m": 9.34240781971472,
+        "native_geometry_disagreement_steps": 1,
+        "csv_sha256": "39ea229e0bcc320e7445eeb3d585ff49e917989a807a42f96db71335da6302b2"
+      }
+    },
+    {
+      "terrain": "test-rocks-705",
+      "seed": 204,
+      "controller": "transport",
+      "original": {
+        "steps": 305,
+        "native_strict_goal": true,
+        "native_success": true,
+        "terminal_flags": [
+          "is_success"
+        ],
+        "final_distance_m": 0.14921938403294402,
+        "final_heading_error_rad": 0.09818196296691895,
+        "collision": false,
+        "planning_mean_s": 0.05513276968227192,
+        "path_length_m": 9.058280140709945,
+        "native_geometry_disagreement_steps": 1,
+        "csv_sha256": "674457da7acf08a899a7b83596bdc4450a36ff9d67fbe75034daf55661227102"
+      },
+      "corrected": {
+        "steps": 726,
+        "native_strict_goal": true,
+        "native_success": true,
+        "terminal_flags": [
+          "is_success"
+        ],
+        "final_distance_m": 0.15857695658207954,
+        "final_heading_error_rad": 0.06191229820251465,
+        "collision": false,
+        "planning_mean_s": 0.05812592586619209,
+        "path_length_m": 9.337618154751599,
+        "native_geometry_disagreement_steps": 1,
+        "csv_sha256": "de7b46740388ef5659b052e481d3e65f2a77346ffcf2374896fe9ff99d866f33"
+      }
+    },
+    {
+      "terrain": "test-rocks-706",
+      "seed": 205,
+      "controller": "transport",
+      "original": {
+        "steps": 294,
+        "native_strict_goal": true,
+        "native_success": true,
+        "terminal_flags": [
+          "is_success"
+        ],
+        "final_distance_m": 0.16773957918999863,
+        "final_heading_error_rad": -0.0872657299041748,
+        "collision": false,
+        "planning_mean_s": 0.054358706339588114,
+        "path_length_m": 9.471769597435197,
+        "native_geometry_disagreement_steps": 1,
+        "csv_sha256": "fc26877f7ca626e27c71b395d6448953581bc4891dc13d29f1b8fd964b7e359b"
+      },
+      "corrected": {
+        "steps": 324,
+        "native_strict_goal": true,
+        "native_success": true,
+        "terminal_flags": [
+          "is_success"
+        ],
+        "final_distance_m": 0.1576044150388981,
+        "final_heading_error_rad": -0.05759692192077637,
+        "collision": false,
+        "planning_mean_s": 0.053589469262348116,
+        "path_length_m": 9.57291127550186,
+        "native_geometry_disagreement_steps": 1,
+        "csv_sha256": "c12e632733dbbc1e6dfd6871e987380f533327c11d5153763fb05d2434d53c96"
+      }
+    },
+    {
+      "terrain": "test-rocks-707",
+      "seed": 206,
+      "controller": "transport",
+      "original": {
+        "steps": 294,
+        "native_strict_goal": true,
+        "native_success": true,
+        "terminal_flags": [
+          "is_success"
+        ],
+        "final_distance_m": 0.15912622268803417,
+        "final_heading_error_rad": -0.08391618728637695,
+        "collision": false,
+        "planning_mean_s": 0.05499114194558419,
+        "path_length_m": 8.92894406388724,
+        "native_geometry_disagreement_steps": 1,
+        "csv_sha256": "c726945720d36720111f65bfa85ad94146a5d958e6dbcd993cba871f785ee85e"
+      },
+      "corrected": {
+        "steps": 296,
+        "native_strict_goal": true,
+        "native_success": true,
+        "terminal_flags": [
+          "is_success"
+        ],
+        "final_distance_m": 0.14998997653338603,
+        "final_heading_error_rad": -0.0832362174987793,
+        "collision": false,
+        "planning_mean_s": 0.0550467202499046,
+        "path_length_m": 8.94357990062148,
+        "native_geometry_disagreement_steps": 1,
+        "csv_sha256": "6af454f024a0e6775dbc33bb39bf93238897895fdc38b55b9857a931d968b73f"
+      }
+    },
+    {
+      "terrain": "test-rocks-708",
+      "seed": 207,
+      "controller": "transport",
+      "original": {
+        "steps": 745,
+        "native_strict_goal": false,
+        "native_success": false,
+        "terminal_flags": [
+          "time_limit"
+        ],
+        "final_distance_m": 5.513123065223144,
+        "final_heading_error_rad": -1.7447474002838135,
+        "collision": false,
+        "planning_mean_s": 0.04789876884039751,
+        "path_length_m": 4.690773004491878,
+        "native_geometry_disagreement_steps": 0,
+        "csv_sha256": "9df3bacf1e9d54c3f9897443844529be613518c3562e10acb92161b18cde2a24"
+      },
+      "corrected": {
+        "steps": 745,
+        "native_strict_goal": false,
+        "native_success": false,
+        "terminal_flags": [
+          "time_limit"
+        ],
+        "final_distance_m": 5.4921261620297175,
+        "final_heading_error_rad": -1.6839582920074463,
+        "collision": false,
+        "planning_mean_s": 0.034782777790707965,
+        "path_length_m": 4.144004714845514,
+        "native_geometry_disagreement_steps": 0,
+        "csv_sha256": "b8e71fef1295df167e7b760da4df01d1d9dd338a75225044deb482eabf6183b5"
+      }
+    },
+    {
+      "terrain": "test-rocks-709",
+      "seed": 208,
+      "controller": "transport",
+      "original": {
+        "steps": 408,
+        "native_strict_goal": true,
+        "native_success": true,
+        "terminal_flags": [
+          "is_success"
+        ],
+        "final_distance_m": 0.15373585186030478,
+        "final_heading_error_rad": 0.06927108764648438,
+        "collision": false,
+        "planning_mean_s": 0.05381676610287447,
+        "path_length_m": 9.131667405892294,
+        "native_geometry_disagreement_steps": 1,
+        "csv_sha256": "8afbccfdbdeadea94978d9768545ac9f23c5ef5294ff170dddd9e5938a341a7b"
+      },
+      "corrected": {
+        "steps": 466,
+        "native_strict_goal": true,
+        "native_success": true,
+        "terminal_flags": [
+          "is_success"
+        ],
+        "final_distance_m": 0.17321596302883932,
+        "final_heading_error_rad": 0.09671235084533691,
+        "collision": false,
+        "planning_mean_s": 0.053468736532179095,
+        "path_length_m": 9.11048305569617,
+        "native_geometry_disagreement_steps": 1,
+        "csv_sha256": "a5e572cb65e9455ed1767a2310c0eaf6ab67c34f6e8093a7e4b05c660d18b58d"
+      }
+    },
+    {
+      "terrain": "test-rocks-710",
+      "seed": 209,
+      "controller": "transport",
+      "original": {
+        "steps": 294,
+        "native_strict_goal": true,
+        "native_success": true,
+        "terminal_flags": [
+          "is_success"
+        ],
+        "final_distance_m": 0.14776338800281494,
+        "final_heading_error_rad": 0.07224678993225098,
+        "collision": false,
+        "planning_mean_s": 0.057801299193794016,
+        "path_length_m": 9.035376457489102,
+        "native_geometry_disagreement_steps": 1,
+        "csv_sha256": "ee1d8a2019e45f24295a78bc6e4edae94d8744d100331d263f54c6cfcd69729d"
+      },
+      "corrected": {
+        "steps": 365,
+        "native_strict_goal": true,
+        "native_success": true,
+        "terminal_flags": [
+          "is_success"
+        ],
+        "final_distance_m": 0.14324244406559392,
+        "final_heading_error_rad": 0.0770409107208252,
+        "collision": false,
+        "planning_mean_s": 0.05770235355887227,
+        "path_length_m": 9.287248727187146,
+        "native_geometry_disagreement_steps": 1,
+        "csv_sha256": "65c377e62531b32f0d046cc49d3d6b42b8c6a13f8993a7bf6742c81a5d40e10a"
+      }
+    },
+    {
+      "terrain": "test-rocks-711",
+      "seed": 210,
+      "controller": "transport",
+      "original": {
+        "steps": 293,
+        "native_strict_goal": true,
+        "native_success": true,
+        "terminal_flags": [
+          "is_success"
+        ],
+        "final_distance_m": 0.14514238321653394,
+        "final_heading_error_rad": 0.0642387866973877,
+        "collision": false,
+        "planning_mean_s": 0.05681414247115791,
+        "path_length_m": 9.022496125119282,
+        "native_geometry_disagreement_steps": 1,
+        "csv_sha256": "d8167ba150ff58143b6ea8377978a114a59688ac5d2fafac0564c8101cecdfce"
+      },
+      "corrected": {
+        "steps": 285,
+        "native_strict_goal": true,
+        "native_success": true,
+        "terminal_flags": [
+          "is_success"
+        ],
+        "final_distance_m": 0.17358724835879236,
+        "final_heading_error_rad": -0.05525851249694824,
+        "collision": false,
+        "planning_mean_s": 0.05748842382482396,
+        "path_length_m": 8.909153226164364,
+        "native_geometry_disagreement_steps": 1,
+        "csv_sha256": "c37d838313c56f180354c16e0a86798e5afac267016644485f107e74cb437704"
+      }
+    },
+    {
+      "terrain": "test-rocks-712",
+      "seed": 211,
+      "controller": "transport",
+      "original": {
+        "steps": 745,
+        "native_strict_goal": false,
+        "native_success": false,
+        "terminal_flags": [
+          "time_limit"
+        ],
+        "final_distance_m": 6.807870833737486,
+        "final_heading_error_rad": 0.18673491477966309,
+        "collision": false,
+        "planning_mean_s": 0.055589973765223025,
+        "path_length_m": 3.049437306017211,
+        "native_geometry_disagreement_steps": 0,
+        "csv_sha256": "b864dfdd374b2018aa4fc9d357664559d3a2d02a780686cbd0fd26780d2ad3f7"
+      },
+      "corrected": {
+        "steps": 561,
+        "native_strict_goal": true,
+        "native_success": true,
+        "terminal_flags": [
+          "is_success"
+        ],
+        "final_distance_m": 0.14947394626787017,
+        "final_heading_error_rad": -0.09212756156921387,
+        "collision": false,
+        "planning_mean_s": 0.053783287308540435,
+        "path_length_m": 14.104236149131642,
+        "native_geometry_disagreement_steps": 1,
+        "csv_sha256": "102868c99983fb59d9652a4b56ea0443aebb261a4839891dcaa1dfff8c7d80ae"
+      }
+    },
+    {
+      "terrain": "test-rocks-713",
+      "seed": 212,
+      "controller": "transport",
+      "original": {
+        "steps": 281,
+        "native_strict_goal": true,
+        "native_success": true,
+        "terminal_flags": [
+          "is_success"
+        ],
+        "final_distance_m": 0.14372977407984852,
+        "final_heading_error_rad": 0.09029364585876465,
+        "collision": false,
+        "planning_mean_s": 0.057143984541041755,
+        "path_length_m": 8.998941192547301,
+        "native_geometry_disagreement_steps": 1,
+        "csv_sha256": "99c527517d442a4e4bbdfc8c3af004ef76d8e296e8a3299b18ed70b8f46a90f2"
+      },
+      "corrected": {
+        "steps": 332,
+        "native_strict_goal": true,
+        "native_success": true,
+        "terminal_flags": [
+          "is_success"
+        ],
+        "final_distance_m": 0.14494465386969696,
+        "final_heading_error_rad": 0.06667566299438477,
+        "collision": false,
+        "planning_mean_s": 0.057674798156734916,
+        "path_length_m": 9.340778850470478,
+        "native_geometry_disagreement_steps": 1,
+        "csv_sha256": "53543767b9e07d21ae914d6f1dadeccaceb05fbc5a2f463ef127c4252e2fdfa8"
+      }
+    },
+    {
+      "terrain": "test-rocks-714",
+      "seed": 213,
+      "controller": "transport",
+      "original": {
+        "steps": 745,
+        "native_strict_goal": false,
+        "native_success": false,
+        "terminal_flags": [
+          "time_limit"
+        ],
+        "final_distance_m": 7.348187433621273,
+        "final_heading_error_rad": 1.0209720134735107,
+        "collision": false,
+        "planning_mean_s": 0.05796287561090579,
+        "path_length_m": 2.678534953376119,
+        "native_geometry_disagreement_steps": 0,
+        "csv_sha256": "24ddbad1a2f8d148856bc4924a9b3e3831df06029c997b663f5b0d44d56583f1"
+      },
+      "corrected": {
+        "steps": 416,
+        "native_strict_goal": true,
+        "native_success": true,
+        "terminal_flags": [
+          "is_success"
+        ],
+        "final_distance_m": 0.17078252253696158,
+        "final_heading_error_rad": 0.05614495277404785,
+        "collision": false,
+        "planning_mean_s": 0.05410971782694455,
+        "path_length_m": 11.262379823034438,
+        "native_geometry_disagreement_steps": 1,
+        "csv_sha256": "52e5977e445c4f55e8f7ddfe8ddd6c764bc84fd6b5dc97444cb7b5af33a02bdd"
+      }
+    },
+    {
+      "terrain": "test-rocks-715",
+      "seed": 214,
+      "controller": "transport",
+      "original": {
+        "steps": 745,
+        "native_strict_goal": false,
+        "native_success": false,
+        "terminal_flags": [
+          "time_limit"
+        ],
+        "final_distance_m": 0.17391057605835628,
+        "final_heading_error_rad": -2.696502923965454,
+        "collision": false,
+        "planning_mean_s": 0.058752284895352495,
+        "path_length_m": 9.257000884493156,
+        "native_geometry_disagreement_steps": 0,
+        "csv_sha256": "962b0bc7b7d3b476d3afed42064aa32e88908b2a85e7631264b0b6e7960385a6"
+      },
+      "corrected": {
+        "steps": 401,
+        "native_strict_goal": true,
+        "native_success": true,
+        "terminal_flags": [
+          "is_success"
+        ],
+        "final_distance_m": 0.1679326656045564,
+        "final_heading_error_rad": -0.05262470245361328,
+        "collision": false,
+        "planning_mean_s": 0.05496705401990885,
+        "path_length_m": 9.451523156366967,
+        "native_geometry_disagreement_steps": 1,
+        "csv_sha256": "1bf7bdbb6808496c8d5907f4c8bb4940da44e958bee6988ca65ddb425a324e2b"
+      }
+    },
+    {
+      "terrain": "test-rocks-716",
+      "seed": 215,
+      "controller": "transport",
+      "original": {
+        "steps": 320,
+        "native_strict_goal": true,
+        "native_success": true,
+        "terminal_flags": [
+          "is_success"
+        ],
+        "final_distance_m": 0.15840751404113315,
+        "final_heading_error_rad": -0.09688234329223633,
+        "collision": false,
+        "planning_mean_s": 0.05514287770295141,
+        "path_length_m": 8.979566110746207,
+        "native_geometry_disagreement_steps": 1,
+        "csv_sha256": "f32d18a25c452c5463a1a626637ee94a00f3350fd595eb70a2f69959b7046092"
+      },
+      "corrected": {
+        "steps": 369,
+        "native_strict_goal": true,
+        "native_success": true,
+        "terminal_flags": [
+          "is_success"
+        ],
+        "final_distance_m": 0.17292221634600172,
+        "final_heading_error_rad": -0.05523943901062012,
+        "collision": false,
+        "planning_mean_s": 0.05572504906229808,
+        "path_length_m": 9.412492887767769,
+        "native_geometry_disagreement_steps": 1,
+        "csv_sha256": "e6f3e4de906f74e1c3c97d7ac5b514ca0fdfe013eabc1310e1329847e19129fa"
+      }
+    },
+    {
+      "terrain": "test-rocks-717",
+      "seed": 216,
+      "controller": "transport",
+      "original": {
+        "steps": 745,
+        "native_strict_goal": false,
+        "native_success": false,
+        "terminal_flags": [
+          "time_limit"
+        ],
+        "final_distance_m": 2.4860437508066613,
+        "final_heading_error_rad": -1.3298200368881226,
+        "collision": false,
+        "planning_mean_s": 0.037370822963815796,
+        "path_length_m": 7.628586197642534,
+        "native_geometry_disagreement_steps": 0,
+        "csv_sha256": "6ab0f7d4abe1447532e4d74d1090d2a190acd4dcaf88d56cd466794c751dbf7b"
+      },
+      "corrected": {
+        "steps": 745,
+        "native_strict_goal": false,
+        "native_success": false,
+        "terminal_flags": [
+          "time_limit"
+        ],
+        "final_distance_m": 2.4564218486756944,
+        "final_heading_error_rad": -1.443191409111023,
+        "collision": false,
+        "planning_mean_s": 0.03912796940142367,
+        "path_length_m": 7.724174326666147,
+        "native_geometry_disagreement_steps": 0,
+        "csv_sha256": "193dd3c89355528badec3c5a30345c87f46655e27add5fe7850f582b402b8ed4"
+      }
+    },
+    {
+      "terrain": "test-rocks-718",
+      "seed": 217,
+      "controller": "transport",
+      "original": {
+        "steps": 303,
+        "native_strict_goal": true,
+        "native_success": true,
+        "terminal_flags": [
+          "is_success"
+        ],
+        "final_distance_m": 0.13703030754111506,
+        "final_heading_error_rad": -0.05385327339172363,
+        "collision": false,
+        "planning_mean_s": 0.053727225280586224,
+        "path_length_m": 9.066810719600628,
+        "native_geometry_disagreement_steps": 1,
+        "csv_sha256": "136d79ec1f16da07f86a819deb4d512e3ada4e40b318609b0d416fa53c05631b"
+      },
+      "corrected": {
+        "steps": 315,
+        "native_strict_goal": true,
+        "native_success": true,
+        "terminal_flags": [
+          "is_success"
+        ],
+        "final_distance_m": 0.15480433600047053,
+        "final_heading_error_rad": -0.0921623706817627,
+        "collision": false,
+        "planning_mean_s": 0.053896137371766455,
+        "path_length_m": 9.161220934833809,
+        "native_geometry_disagreement_steps": 1,
+        "csv_sha256": "539c4d58b23dc935c62cf7544459cc2dabd8de83e5f6b2ff2152a1581fbb7487"
+      }
+    },
+    {
+      "terrain": "test-rocks-719",
+      "seed": 218,
+      "controller": "transport",
+      "original": {
+        "steps": 395,
+        "native_strict_goal": true,
+        "native_success": true,
+        "terminal_flags": [
+          "is_success"
+        ],
+        "final_distance_m": 0.1613071650080923,
+        "final_heading_error_rad": -0.07276582717895508,
+        "collision": false,
+        "planning_mean_s": 0.0575818028378181,
+        "path_length_m": 9.032465009973254,
+        "native_geometry_disagreement_steps": 1,
+        "csv_sha256": "be348bf7c7f43d0926fdf13e5e32f0de019dd28175b669ec2ebc39d6f57ee479"
+      },
+      "corrected": {
+        "steps": 610,
+        "native_strict_goal": true,
+        "native_success": true,
+        "terminal_flags": [
+          "is_success"
+        ],
+        "final_distance_m": 0.14846277909581956,
+        "final_heading_error_rad": -0.059922218322753906,
+        "collision": false,
+        "planning_mean_s": 0.05794798031807868,
+        "path_length_m": 9.289277709777915,
+        "native_geometry_disagreement_steps": 1,
+        "csv_sha256": "6f379b12f3464092d4101664872c86b0d851625db146d23b29030301f83f4d2f"
+      }
+    },
+    {
+      "terrain": "test-rocks-720",
+      "seed": 219,
+      "controller": "transport",
+      "original": {
+        "steps": 358,
+        "native_strict_goal": true,
+        "native_success": true,
+        "terminal_flags": [
+          "is_success"
+        ],
+        "final_distance_m": 0.17597699084380228,
+        "final_heading_error_rad": -0.06869244575500488,
+        "collision": false,
+        "planning_mean_s": 0.05168870465666402,
+        "path_length_m": 9.47749504829397,
+        "native_geometry_disagreement_steps": 1,
+        "csv_sha256": "740ec2c607362cdbe324ff878bc580f679c6a6a385d176e61ef850954f27b946"
+      },
+      "corrected": {
+        "steps": 362,
+        "native_strict_goal": true,
+        "native_success": true,
+        "terminal_flags": [
+          "is_success"
+        ],
+        "final_distance_m": 0.17318466701484841,
+        "final_heading_error_rad": -0.054062843322753906,
+        "collision": false,
+        "planning_mean_s": 0.0530303848316391,
+        "path_length_m": 9.490402528869502,
+        "native_geometry_disagreement_steps": 1,
+        "csv_sha256": "47e892df28099e3f82ef06b9bc661b1bdc20df4a4da2d41591cc0840f0339dd1"
+      }
+    }
+  ],
+  "session_completion": {
+    "reported_by": "root after host verification",
+    "done_written_normally": true,
+    "job_succeeded": 1,
+    "job_complete": true,
+    "pod_phase": "Succeeded",
+    "rover_exit_code": 0,
+    "raw_pvc_preserved": true
+  }
+}
