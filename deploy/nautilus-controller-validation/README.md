@@ -25,8 +25,8 @@ planner order. Both versions use the same mode, weights, runner, terrain, native
 goals, and safety checks. Do not run extra cases to replace a failed endpoint.
 The [fresh v1 protocol](fresh-v1-protocol.md) registers the selected controller,
 exact snapshot hashes, transport mode, case order and analysis rules before
-outcomes. Its generated plan and snapshot manifest are committed beside it.
-The [fresh v1 results](../../notes/controller-fresh-native-validation.md) record
+outcomes. Its input plan is versioned; keep the generated snapshot manifest with external run artifacts.
+The [consolidated final results](../../docs/results.md#controller-reliability-comparison) record
 the completed study and failed primary decision.
 
 Inside the prepared simulator runtime, with the existing stack and hardware
@@ -65,3 +65,10 @@ The report includes wins, losses, gain, exact probability, collisions, and
 latency. It has no conditional alternate endpoint.
 
 Old test plans, frozen evidence, and their source snapshots remain separate.
+
+For clearance diagnostics, pass external mesh receipts explicitly:
+
+```bash
+rtk proxy python scripts/diagnose_rover_clearance.py TRACE.csv \
+  --mesh-receipts artifacts/jepa-confirmation-mesh-hashes.json
+```

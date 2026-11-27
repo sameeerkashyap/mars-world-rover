@@ -156,7 +156,7 @@ RLRoverLab simulator
 - [ ] Load the pretrained PointMaze model.
 - [ ] Read the upstream PointMaze planning/evaluation instructions and identify its simulator requirements.
 - [ ] Read RLRoverLab's installation guide, choose a supported rover navigation task, and verify hardware compatibility.
-- [ ] Save the dependency versions and upstream commit IDs in `notes/setup.md`.
+- [ ] Save the dependency versions and upstream commit IDs in the run artifact directory outside Git.
 
 ## Source READMEs
 

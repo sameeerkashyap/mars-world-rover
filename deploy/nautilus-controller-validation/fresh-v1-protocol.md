@@ -3,8 +3,8 @@
 This protocol registers 20 new-layout pairs before any fresh outcome is opened.
 It implements [ticket 18](https://github.com/sameeerkashyap/mars-world-rover/issues/18)
 under [spec 16](https://github.com/sameeerkashyap/mars-world-rover/issues/16).
-The [selected controller](../../notes/controller-selection-native-validation.md)
-passed the fixed known-case gate. Those inspected cases stay outside this study.
+The selected controller passed the fixed known-case gate; retain its
+development reports in external run storage. Those inspected cases stay outside this study.
 This commit freezes the plan. Launch must wait until the integration branch has
 merged and pushed it, and the root agent has explicitly approved progression.
 
@@ -15,7 +15,7 @@ The corrected planner, common runner, verifier, terrain generator and setup are
 from exact commit `aed6e7030de0c0cd17cd9fa0a303e7ec21e6cbe8`.
 Both roles use that common runner and differ only in the selected planner.
 The [generated plan](fresh-v1-test-plan.json) contains every source and weight
-hash. The [snapshot manifest](fresh-v1-SHA256SUMS) lists 17 payload files, including
+hash. The external snapshot manifest `SHA256SUMS` lists 17 payload files, including
 the plan. The manifest itself is the eighteenth snapshot file. Paths in the
 manifest are relative to the snapshot, not this folder.
 

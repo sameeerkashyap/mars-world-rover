@@ -66,7 +66,7 @@ rtk proxy python scripts/check_setup.py
 
 The activation script sets absolute JEPA paths and project-local cache locations.
 It does not install packages. A nonzero check result means prerequisites remain
-missing; see [the setup record](../notes/setup.md).
+missing; see [runtime setup](../notes/setup.md).
 
 ## Train the first rover baseline locally
 

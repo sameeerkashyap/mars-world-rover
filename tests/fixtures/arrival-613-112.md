@@ -15,7 +15,7 @@ Sources and SHA256 values are also stored in the NPZ:
 | Its saved scan, `last` array (the pre-step-309 scan) | `a6a2166678d87d2b510cbfa2721d709e447ac2d5b697f99afab84df784a62b6f` |
 | Original `runs/rover-baseline/20261113T210435968626Z/model.pt` | `76953ac81e383a6000d9b26bf8026b5049f4ce768831bd48506dea31d7649283` |
 | Layout 501, seed 30 model CSV, step 224 | `928ac219775877c0255dccb9e3f10981f4a3955cc5cd73648da7e2089dfb5460` |
-| `notes/rover-goal-hold-summary.json`, model-hold seed 30 endpoint | `61c3cd33c29c066e6c8a5974932f1728bdabae7df24a7e4d4aa5aca4750aa85a` |
+| External goal-hold summary (kept with run artifacts), model-hold seed 30 endpoint | `61c3cd33c29c066e6c8a5974932f1728bdabae7df24a7e4d4aa5aca4750aa85a` |
 
 The CSV state fields are the prior speed and turn commands, distance times 0.11,
 goal bearing relative to yaw divided by pi, and heading error divided by pi.

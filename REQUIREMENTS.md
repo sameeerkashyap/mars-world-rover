@@ -85,7 +85,7 @@ Required behavior:
 Acceptance evidence:
 
 - A saved evaluation command and configuration, including the seed when supported.
-- Upstream commit, dependency versions, dataset/checkpoint identifiers, and hardware details in `notes/setup.md`.
+- Upstream commit, dependency versions, dataset/checkpoint identifiers, and hardware details in the run artifact directory outside Git.
 - Saved planning logs and reported outcome metrics under `runs/`.
 
 Checkpoint loading alone does not pass this milestone. No numerical performance threshold is specified yet; preserve the upstream task's evaluation metrics for comparison.
@@ -119,7 +119,7 @@ Acceptance evidence:
 
 - A saved trajectory with a documented field schema and no unexplained timing gaps.
 - A plot or video showing rover motion from that trajectory.
-- A reproducible launch/recording command and environment details in `notes/setup.md`.
+- A reproducible launch/recording command and environment details in the run artifact directory outside Git.
 
 If Isaac setup is impractical, evaluate [MarsExplorer-Gymnasium](https://github.com/markub3327/MarsExplorer-Gymnasium) as an optional prototype. Record that substitution and its limitations; it does not establish RLRoverLab compatibility.
 

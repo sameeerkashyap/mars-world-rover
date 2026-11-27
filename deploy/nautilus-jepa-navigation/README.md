@@ -6,7 +6,7 @@ its source hashes differ from these frozen plans. Reproduce the old runs from
 their saved source snapshots. The launcher refuses an existing job and changed
 source fails hash checks. Inspected layouts are now development data.
 
-See the [completed report](../../notes/rover-navigation-v2-verification.json)
+See [consolidated findings](../../docs/results.md)
 and the separate [goal-hold replay](../nautilus-goal-hold/README.md).
 
 This evaluation compares three controllers with the same goal-motion model,

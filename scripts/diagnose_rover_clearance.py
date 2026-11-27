@@ -161,8 +161,7 @@ def diagnose_trial(trace, receipts):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("traces", type=Path, nargs="+")
-    parser.add_argument("--mesh-receipts", type=Path,
-                        default=Path(__file__).resolve().parents[1] / "notes/jepa-confirmation-mesh-hashes.json")
+    parser.add_argument("--mesh-receipts", type=Path, required=True)
     parser.add_argument("--output", type=Path)
     args = parser.parse_args()
     torch.set_num_threads(1)
