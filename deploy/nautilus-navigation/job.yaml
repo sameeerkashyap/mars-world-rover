@@ -5,7 +5,6 @@ metadata:
   name: mars-rover-navigation-v4
 spec:
   backoffLimit: 0
-  activeDeadlineSeconds: 14400
   template:
     spec:
       restartPolicy: Never
@@ -98,6 +97,14 @@ spec:
             path: scripts/rover_plan.py
           - key: train_rover_baseline.py
             path: scripts/train_rover_baseline.py
+          - key: train_rover_jepa.py
+            path: scripts/train_rover_jepa.py
+          - key: rover_forecast.py
+            path: src/rover_forecast.py
+          - key: terrain_cost.py
+            path: src/terrain_cost.py
+          - key: evaluation_terrain.py
+            path: src/evaluation_terrain.py
           - key: model.pt
             path: model.pt
           - key: runtime-setup.sh

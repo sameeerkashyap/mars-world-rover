@@ -97,3 +97,23 @@ class RoverPlannerTests(unittest.TestCase):
         state[0, 2] = float("nan")
         with self.assertRaises(ValueError):
             plan_action(CopyModel(), state)
+
+    def test_goal_hold_waits_only_inside_both_native_tolerances(self):
+        class PlanningReached(torch.nn.Module):
+            def forward(self, inputs):
+                raise RuntimeError("Candidate planning reached")
+
+        state = torch.tensor([[0., -0.23, 0.17944564 * 0.11, 0., -0.08632588 / torch.pi]])
+        scan = torch.zeros(10201)
+        action = plan_action(PlanningReached(), state, height_scan=scan, hold_reached_goal=True)
+        torch.testing.assert_close(action, torch.zeros((1, 2)))
+        torch.testing.assert_close(plan_action(PlanningReached(), state, height_scan=scan), action)
+        with self.assertRaisesRegex(RuntimeError, "Candidate planning reached"):
+            plan_action(PlanningReached(), state, height_scan=scan, hold_reached_goal=False)
+        for distance, heading in ((0.181, 0.08), (0.179, 0.101)):
+            outside = state.clone()
+            outside[0, 2], outside[0, 4] = distance * 0.11, heading / torch.pi
+            with self.assertRaisesRegex(RuntimeError, "Candidate planning reached"):
+                plan_action(PlanningReached(), outside, height_scan=scan, hold_reached_goal=True)
+        with self.assertRaises(ValueError):
+            plan_action(PlanningReached(), state, height_scan=torch.zeros(10), hold_reached_goal=True)

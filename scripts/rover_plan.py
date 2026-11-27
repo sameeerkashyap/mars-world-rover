@@ -74,9 +74,11 @@ def scan_waypoint(costmap, goal):
 
 
 @torch.inference_mode()
-def plan_action(model, state, horizon=20, align_heading=False, height_scan=None):
+def plan_action(model, state, horizon=20, align_heading=False, height_scan=None, terrain_cost=None, hold_reached_goal=True):
     if state.shape != (1, 5) or not torch.isfinite(state).all() or horizon < 1:
         raise ValueError("Planning needs one finite five-field state and a positive horizon")
+    if terrain_cost is not None and height_scan is None:
+        raise ValueError("Forecast scoring requires measured-scan obstacle checks")
     actions = torch.cartesian_prod(
         state.new_tensor([0.0, 0.05, 0.15, 0.35, 0.65, -0.05, -0.2]),
         state.new_tensor([0.0, -0.35, -0.23, -0.12, -0.04, 0.04, 0.12, 0.23, 0.35]),
@@ -86,6 +88,8 @@ def plan_action(model, state, horizon=20, align_heading=False, height_scan=None)
         actions = actions[actions[:, 0] == 0]
         horizon = min(horizon, 5)
     risk_map = scan_costmap(height_scan) if height_scan is not None else None
+    if hold_reached_goal and float(state[0, 2]) / 0.11 < 0.18 and abs(float(state[0, 4])) * math.pi < 0.1:
+        return state.new_zeros((1, 2))
     waypoint = None
     if risk_map is not None and not align_heading:
         angle = state[0, 3] * torch.pi
@@ -125,6 +129,15 @@ def plan_action(model, state, horizon=20, align_heading=False, height_scan=None)
         cost = (relative_motion(initial, prediction)[:, :2] / 0.11 - waypoint).norm(dim=1) if waypoint is not None else distance + distance.clamp(max=2) * (bearing / torch.pi).square()
     if not torch.isfinite(cost).all():
         raise RuntimeError("The learned model produced non-finite planning costs")
+    safe = risk < 100
+    if terrain_cost is not None and not align_heading and safe.any():
+        ticks = torch.arange(25, device=state.device)[None, :, None]
+        commands = torch.where(ticks < turn_steps[safe, None, None], actions[safe, None], follow[safe, None])
+        predicted_cost = terrain_cost(commands, lengths[safe])
+        if (predicted_cost.shape != lengths[safe].shape or not torch.isfinite(predicted_cost).all()
+                or (predicted_cost < 0).any() or (predicted_cost > 1).any()):
+            raise RuntimeError("Invalid predicted terrain costs")
+        cost[safe] += 0.25 * predicted_cost
     cost += risk
     cost[risk >= 100] = torch.inf
     if not torch.isfinite(cost).any():

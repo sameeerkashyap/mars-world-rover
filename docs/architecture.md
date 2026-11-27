@@ -21,6 +21,7 @@ simulation dependencies.
 ## Repository layout
 
 ```text
+src/                        Terrain readout, forecast history, and terrain generation
 scripts/                    Reference checks, data tools, training, and planning
 deploy/nautilus-reference/   Reference job, launcher, run sequence, and guide
 deploy/nautilus-*/           Other Nautilus workloads and their setup
@@ -31,7 +32,21 @@ external/                   Pinned upstream model and simulator code
 Run local Python tools from `scripts/`. Keep cluster configuration and shell
 launchers in the matching `deploy/` folder. The reference launcher's interface
 is `bash deploy/nautilus-reference/deploy.sh`. It mounts the Python scripts
-without rebuilding the image. There is no local model package in `src/`.
+without rebuilding the image. `src/terrain_cost.py` holds the new model code;
+operational entry points stay in `scripts/`.
+
+The separate [architecture pilot](https://github.com/sameeerkashyap/mars-world-rover/pull/10) compares upstream AdaLN and DINO-WM predictors.
+
+The terrain-cost trainer keeps the selected JEPA predictor and DINOv2 encoder
+frozen. It fits a 65-parameter readout to blocked-area fractions from recorded
+height scans. Labels use the existing planner's clearance rules. Validation
+compares predicted costs at one and five seconds with copying features,
+motion-only feature transport, and a fixed cost per patch. These are offline
+checks. `src/rover_forecast.py` now supplies optional terrain costs to rerank
+candidate paths that pass the measured-scan checks. The frozen
+[navigation comparison](../deploy/nautilus-jepa-navigation/README.md) measures
+goal completion, collisions, stalls, path length, and planning latency before
+any claim that these costs improve navigation.
 
 ## Planned model pipeline
 
@@ -48,7 +63,12 @@ flowchart LR
 
 The encoder maps observations into a compact set of features. The predictor uses
 those features and candidate actions to estimate future features. The planner
-compares possible futures and chooses commands toward a goal. The small goal-motion model already closes a control loop. The rover JEPA model now predicts terrain features offline. Connecting its forecasts to the planner remains future work. Its pose predictions come from the frozen motion baseline. See the [training guide](../deploy/nautilus-jepa-rover/README.md). The current height rules are a geometric approximation.
+compares possible futures and chooses commands toward a goal. The small
+goal-motion model closes the control loop. Optional frozen DINO-WM rover
+forecasts now add terrain costs to the planner. Their motion forecasts come
+from the frozen motion baseline. The measured height-scan rules still reject
+blocked paths. See the [training guide](../deploy/nautilus-jepa-rover/README.md).
+The current height rules are a geometric approximation.
 
 Save each transition as `observation[t], action[t], observation[t+1]`. Keep time,
 episode boundaries, goals, and outcomes with it. Keep simulator-only diagnostics
