@@ -56,7 +56,7 @@ RLRoverLab with scripted forward, reverse, turns, and stops. It records data;
 it does not train an RL policy. Every file has a completion marker. The split
 preparer accepts only completed training files and snapshots their paths.
 Seeds 20 and 21 stay reserved under the
-[test plan](../../docs/results/rover-jepa/test-plan.json).
+test plan saved with the run artifacts outside Git.
 
 The reused episode loader checks finite values, timing, reset boundaries, and
 stale terminal fields. Forecast windows cannot cross resets or recordings.
@@ -90,64 +90,9 @@ across the full split. `FINISHED` means execution completed. Only
 `QUALITY_PASSED` means the complete target passed. Never weaken these gates to
 make a run pass.
 
-Run v11 stopped after 17 epochs and selected epoch 16. It passed every check
-except the one-second validation gain over transport: 1.83%, below 2%.
-It improved over copying by 10.41% at one second and 21.83% at five seconds on
-validation. The five-second development-test gain over transport was 5.22%.
-Run v12 repeated this source and data. It passed every development check at
-epoch 23 and stopped. GPU numerical differences changed the training path;
-this is evidence of a narrow margin, not a large robust improvement. The
-reserved final evaluation used its frozen checkpoint and passed the planned
-pooled target. Final feature gains over copying were 10.80% at one second and
-19.88% at five seconds. Gains over transport were 2.37% and 5.65%. Mars alone
-narrowly missed the one-second copy target at 9.85%; debug passed. See the
-[final report](../../docs/results/rover-jepa/final-metrics.json) and
-[results](../../docs/results.md). All workloads have completed.
-
-## Train terrain costs from the recordings
-
-`src/terrain_cost.py` adds a 65-parameter readout from each 64-channel spatial
-feature to a terrain cost between zero and one. The target is the fraction of
-each patch blocked by the existing height-scan clearance rules. Scan resizing
-uses the same 112-pixel grid and 14-pixel patches as the encoder. DINOv2,
-the selected JEPA predictor, its projection, and its motion prior stay frozen.
-
-Run the training script as a module from the repository root. It accepts CPU
-or CUDA. The encoder source must be the pinned DINOv2 snapshot listed above.
-Use its existing weight cache through `TORCH_HOME` when available.
-
-```bash
-rtk proxy uv run --no-project --python 3.12 \
-  --with torch==2.10.0 --with torchvision==0.25.0 \
-  --with numpy==2.3.1 --with h5py==3.15.1 --with einops==0.8.1 \
-  python -m scripts.train_terrain_cost \
-  --run runs/rover-jepa/attempt-10 \
-  --data data/rover/rover_seed_0.hdf5 \
-    data/rover/mars-rover-variation-0/rover_seed_1.hdf5 \
-  --validation-data data/rover/mars-rover-variation-1/rover_seed_1.hdf5 \
-  --encoder-source /runtime/dinov2 \
-  --predictor-source external/jepa-wms/app/plan_common/models/vit.py \
-  --output runs/terrain-cost/new-run --epochs 60 --device cpu
-```
-
-Replace `/runtime/dinov2` with the local pinned source path on a workstation.
-The example uses the two training recordings available locally. A full run
-can list all original training files. The script checks file content hashes
-against the selected run's `split.json` and checkpoint manifest. Validation
-files cannot enter training. Development-test and reserved-test files are
-rejected, including renamed copies. Windows stay inside their original episodes.
-
-The best epoch is selected by measured validation cost error. `metrics.json`
-also compares one- and five-second cost forecasts from JEPA, motion-only
-transport, copying current features, and the training mean for each patch.
-All three feature forecasts use the same readout. `best.pt` stores its weights,
-the fixed projection, normalization, and the source JEPA checkpoint hash.
-Reloaded predictions must match before `FINISHED` is written. Output folders
-must be new; existing artifacts are never replaced.
-
-These labels express geometric clearance rules. They do not measure traction,
-wheel slip, or physical safety. `FINISHED` means execution completed, not that
-JEPA improved navigation. Online planner integration remains a separate step.
+Final offline findings are consolidated in [results](../../docs/results.md#rover-jepa-prediction).
+Keep development attempts, metrics, and histories with the run artifacts
+outside Git.
 
 ## Saved evidence and final evaluation
 

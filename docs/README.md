@@ -13,7 +13,7 @@ measured results before extending the model pipeline.
 | [Step 1](../deploy/nautilus-reference/README.md) | Deploy and inspect the reference JEPA evaluation |
 | [Nautilus operations](../deploy/nautilus/README.md) | Build images and manage simulator jobs |
 | [Requirements](../REQUIREMENTS.md) | Check acceptance criteria and scope |
-| [Setup history](../notes/setup.md) | Trace environment changes and past runs |
+| [Runtime setup](../notes/setup.md) | Environment separation and artifact storage |
 | [Project bootstrap](../MarsRover_WM_BOOTSTRAP.md) | Read the original research plan |
 
 [Back to the project](../README.md)
