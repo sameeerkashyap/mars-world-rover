@@ -7,11 +7,9 @@ The normal planner now holds at a reached goal. This replay keeps an explicit
 legacy controller (`model`) and a hold controller (`model-hold`) so the
 comparison stays reproducible.
 
-The recorded seed-30 baseline crossed both geometric tolerances at step 224.
-The native flag arrived at step 225, after distance drifted outside 0.18 m.
-The [timing diagnostic](../../notes/rover-goal-timing-diagnostic.json) preserves
-that strict failure. This replay tests the proposed control change in physics;
-it does not assume that zero commands eliminate residual drift.
+A rover can drift outside the goal tolerance while waiting for the native
+success flag. This replay tests the hold behavior in physics; zero commands
+do not guarantee that residual drift stops.
 
 The study runs six trials: `model` and `model-hold` from matched starts at seeds
 30, 31, and 32 on the already inspected `test-rocks-501` layout. Both use the
@@ -47,17 +45,9 @@ and documented A10G deployment path; actual support is checked by the job's
 runtime stack. See [Isaac Sim 6.0.1 requirements](https://docs.isaacsim.omniverse.nvidia.com/6.0.1/installation/requirements.html)
 and [AWS's Isaac Lab GPU compatibility table](https://aws.amazon.com/blogs/machine-learning/scale-robot-reinforcement-learning-with-nvidia-isaac-lab-on-amazon-sagemaker-ai/).
 
-## Completed replay
+## Result storage
 
-Job `mars-rover-goal-hold-20261121-v1` completed all six trials and passed
-independent trace verification. The legacy planner reached 2/3 goals; goal hold
-reached 3/3. Both had zero collisions. In seed 30, the legacy terminal distance
-was 0.180314 m; goal hold ended at 0.178301 m with heading error 0.078181 rad.
-Each hold trial used one zero-command step after entering both tolerances.
-
-The [verified report](../../notes/rover-goal-hold-verification.json) and
-[full summary](../../notes/rover-goal-hold-summary.json) retain the frozen plan
-and source hashes. The stored replay source predates the default promotion;
-its explicit controller flags exercised the same hold behavior. The planner's
-new default is covered by a functional regression check. This corrects the
-observed boundary case without changing the native success conditions.
+Keep replay summaries, timing diagnostics, frozen source, and verification
+reports under `/data/runs/rover-goal-hold/` or ignored local run storage.
+Development replay outputs remain outside Git. Only consolidated final
+findings belong in [results](../../docs/results.md).

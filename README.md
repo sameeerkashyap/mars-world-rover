@@ -87,7 +87,7 @@ docker/       Shared runtime image and preflight checks
 scripts/      Reference checks, recording, training, and planning
 tests/        Deployment and recording checks
 docs/         Guides, results, roadmap, and illustrations
-notes/        Run history and upstream revision pins
+notes/        Runtime setup and upstream revision pins
 external/     Local upstream source snapshots (not versioned here)
 ```
 
