@@ -1,0 +1,159 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: razvanlab
+  name: mars-rover-world-model-pilot-20261121-v1
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      containers:
+      - name: trainer
+        image: docker.io/samkash/mars-runtime:uv4
+        args:
+        - --epochs
+        - '60'
+        - --train-windows
+        - '256'
+        - --validation-windows
+        - '128'
+        - --seeds
+        - '0'
+        - '1'
+        - '2'
+        env:
+        - name: ACCEPT_EULA
+          value: 'Y'
+        - name: OMNI_KIT_ACCEPT_EULA
+          value: 'YES'
+        - name: OMNI_KIT_ALLOW_ROOT
+          value: '1'
+        - name: NVIDIA_DRIVER_CAPABILITIES
+          value: compute,utility,graphics
+        - name: WANDB_MODE
+          value: offline
+        - name: TRAINING_RUN_ID
+          value: mars-rover-world-model-pilot-20261121-v1
+        resources:
+          requests:
+            cpu: '4'
+            memory: 16Gi
+            ephemeral-storage: 30Gi
+            nvidia.com/gpu: '1'
+          limits:
+            cpu: '4'
+            memory: 16Gi
+            ephemeral-storage: 30Gi
+            nvidia.com/gpu: '1'
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: runtime
+          mountPath: /runtime
+        - name: shm
+          mountPath: /dev/shm
+        - name: scratch
+          mountPath: /tmp
+        - &id001
+          name: source
+          mountPath: /opt/train
+          readOnly: true
+        - &id002
+          name: source
+          mountPath: /opt/upstream.json
+          subPath: upstream.json
+          readOnly: true
+        command:
+        - /bin/bash
+        - /opt/train/train.sh
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: mars-world-data
+      - name: runtime
+        emptyDir:
+          sizeLimit: 25Gi
+      - name: shm
+        emptyDir:
+          medium: Memory
+          sizeLimit: 2Gi
+      - name: scratch
+        emptyDir:
+          sizeLimit: 5Gi
+      - name: source
+        configMap:
+          name: mars-rover-world-model-pilot-20261121-v1-source
+          items:
+          - key: setup.sh
+            path: setup.sh
+          - key: base_setup.sh
+            path: base_setup.sh
+          - key: train.sh
+            path: train.sh
+          - key: prepare_split.py
+            path: prepare_split.py
+          - key: train_world_model_pilot.py
+            path: scripts/train_world_model_pilot.py
+          - key: evaluate_world_model_pilot.py
+            path: scripts/evaluate_world_model_pilot.py
+          - key: train_rover_jepa.py
+            path: scripts/train_rover_jepa.py
+          - key: train_rover_baseline.py
+            path: scripts/train_rover_baseline.py
+          - key: rover_training.py
+            path: src/rover_training.py
+          - key: rover_world_model.py
+            path: src/rover_world_model.py
+          - key: vit.py
+            path: upstream/app/plan_common/models/vit.py
+          - key: AdaLN_vit.py
+            path: upstream/app/plan_common/models/AdaLN_vit.py
+          - key: modules.py
+            path: upstream/src/models/utils/modules.py
+          - key: logging.py
+            path: upstream/src/utils/logging.py
+          - key: tensors.py
+            path: upstream/src/utils/tensors.py
+          - key: upstream.json
+            path: upstream.json
+      initContainers:
+      - name: setup
+        image: docker.io/samkash/mars-runtime:uv4
+        command:
+        - /bin/bash
+        - /opt/train/setup.sh
+        args: []
+        resources:
+          requests:
+            cpu: '4'
+            memory: 8Gi
+            ephemeral-storage: 30Gi
+          limits:
+            cpu: '4'
+            memory: 8Gi
+            ephemeral-storage: 30Gi
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        - name: runtime
+          mountPath: /runtime
+        - *id001
+        - *id002
+        env:
+        - name: ACCEPT_EULA
+          value: 'Y'
+        - name: OMNI_KIT_ACCEPT_EULA
+          value: 'YES'
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: nvidia.com/gpu.compute.major
+                operator: Gt
+                values:
+                - '7'

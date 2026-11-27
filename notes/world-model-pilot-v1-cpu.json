@@ -1,0 +1,75 @@
+{
+  "arms": [
+    {
+      "architecture": "dino",
+      "seed": 0,
+      "best_epoch": 15,
+      "epochs": 23,
+      "stop_reason": "validation_plateau",
+      "validation": {
+        "model": [
+          0.8534132242202759,
+          1.8438262939453125
+        ],
+        "copy": [
+          0.8952794075012207,
+          2.212702751159668
+        ],
+        "transport": [
+          0.7767293453216553,
+          1.6401582956314087
+        ],
+        "shuffled": [
+          0.8553631901741028,
+          1.8459101915359497
+        ],
+        "selection_score": 1.1114512293796448,
+        "gain_over_transport": [
+          -0.0987266405737055,
+          -0.12417581818558432
+        ],
+        "action_shuffle_increase": [
+          0.0022849024347009195,
+          0.0011302027731572295
+        ]
+      },
+      "candidate_gate": false
+    },
+    {
+      "architecture": "adaln",
+      "seed": 0,
+      "best_epoch": 12,
+      "epochs": 20,
+      "stop_reason": "validation_plateau",
+      "validation": {
+        "model": [
+          1.1041851043701172,
+          1.9798537492752075
+        ],
+        "copy": [
+          0.8952794075012207,
+          2.212702751159668
+        ],
+        "transport": [
+          0.7767293453216553,
+          1.6401582956314087
+        ],
+        "shuffled": [
+          1.1111946105957031,
+          1.9809556007385254
+        ],
+        "selection_score": 1.3143471089678003,
+        "gain_over_transport": [
+          -0.4215828345108521,
+          -0.20711138342474866
+        ],
+        "action_shuffle_increase": [
+          0.006348126050463643,
+          0.0005565317457014718
+        ]
+      },
+      "candidate_gate": false
+    }
+  ],
+  "scope": "Development-only offline pilot. No reserved test data or navigation promotion."
+}
