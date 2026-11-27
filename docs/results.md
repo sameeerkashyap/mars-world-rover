@@ -129,3 +129,26 @@ terrain family, not natural terrain or new friction conditions.
 The [comparison guide](../deploy/nautilus-jepa-confirmation/README.md)
 describes the frozen cases, endpoint, and verification procedure. Full traces
 and analysis reports remain under `/data/runs/rover-jepa-confirmation/`.
+
+## Controller reliability comparison
+
+A completed paired evaluation compared the original and corrected controllers
+in transport mode on 20 new synthetic layouts. The correction retains a
+reachable waypoint and adjusts arrival braking. Weights, native success
+thresholds, collision rules, and measured-scan rejection remained fixed.
+
+| Controller | Goals reached | Collisions |
+| :--- | ---: | ---: |
+| Original | 13/20 | 0/20 |
+| Corrected | 17/20 | 0/20 |
+
+Four pairs improved and none regressed. The success-rate gain was 0.20;
+the exact paired p-value was 0.125. Mean corrected planning time was 53 ms.
+The registered primary rule failed because p exceeded 0.05. These results
+do not establish a confirmed general navigation improvement. Both controllers
+timed out on layouts 702, 708, and 717. Some successful corrected trials
+required more commands. This comparison does not test a JEPA advantage.
+
+The [controller validation guide](../deploy/nautilus-controller-validation/README.md)
+describes the fixed endpoint and verification. Full paired records and
+development diagnostics remain in external run storage.

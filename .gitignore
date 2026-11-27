@@ -19,6 +19,7 @@ results/
 !/notes/upstream.json
 /docs/results/
 /docs/terrain-cost-metrics.json
+/deploy/nautilus-controller-validation/fresh-v1-SHA256SUMS
 /experiments/
 /pilots/
 /artifacts/

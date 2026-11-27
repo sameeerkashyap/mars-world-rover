@@ -2,6 +2,7 @@ import ast
 import csv
 import hashlib
 import importlib.util
+import inspect
 import json
 from pathlib import Path
 import shutil
@@ -49,15 +50,18 @@ class ConfirmationTests(unittest.TestCase):
         tree = ast.parse(path.read_text())
         function = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == "audit_forecast_action")
         forecast = SimpleNamespace(mode="jepa", scoring_calls=10, scored_candidates=40, costs=None)
-        def choose(*args, **kwargs):
+        hint = torch.tensor([1., .5])
+        def choose(*args, previous_waypoint=None, **kwargs):
             self.assertEqual(forecast.mode, "transport")
+            self.assertIs(previous_waypoint, hint)
             forecast.scoring_calls += 1
             forecast.scored_candidates += 4
             return torch.tensor([[0.35, 0.]])
-        namespace = {"plan_action": choose}
+        namespace = {"plan_action": choose, "inspect": inspect}
         exec(compile(ast.Module(body=[function], type_ignores=[]), str(path), "exec"), namespace)
-        action = namespace["audit_forecast_action"](forecast, None, None, None, False, True)
+        action = namespace["audit_forecast_action"](forecast, None, None, None, False, True, hint)
         torch.testing.assert_close(action, torch.tensor([[0.35, 0.]]))
+        torch.testing.assert_close(hint, torch.tensor([1., .5]))
         self.assertEqual((forecast.mode, forecast.scoring_calls, forecast.scored_candidates), ("jepa", 10, 40))
         def fail(*args, **kwargs):
             raise ValueError("Invalid counterfactual")
@@ -101,9 +105,12 @@ class ConfirmationTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             (root / "source").mkdir()
-            (root / "source/test-plan.json").write_text(json.dumps(plan))
             for name, relative in deploy.SOURCES.items():
                 shutil.copyfile(ROOT / relative, root / "source" / name)
+                plan["all_source_sha256"][name] = hashlib.sha256((root / "source" / name).read_bytes()).hexdigest()
+            for name, key in source_names.items():
+                plan["sha256"][key] = plan["all_source_sha256"][name]
+            (root / "source/test-plan.json").write_text(json.dumps(plan))
             hidden = root / "source/..data"
             hidden.mkdir()
             shutil.copyfile(root / "source/rover_navigate.py", hidden / "rover_navigate.py")

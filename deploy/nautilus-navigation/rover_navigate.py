@@ -1,9 +1,11 @@
 """Evaluate learned-model planning and scripted forward motion in Isaac Sim."""
 
 import argparse
+from contextlib import ExitStack
 import csv
 import hashlib
 import inspect
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -11,6 +13,7 @@ import shutil
 import traceback
 import time
 
+import h5py
 from isaaclab.app import AppLauncher
 
 parser = argparse.ArgumentParser(description=__doc__)
@@ -26,7 +29,11 @@ parser.add_argument("--encoder-source", type=Path, default=Path("/runtime/dinov2
 parser.add_argument("--predictor-source", type=Path, default=Path("/opt/navigation/meta_vit.py"))
 parser.add_argument("--test-plan", type=Path)
 parser.add_argument("--replay-plan", type=Path)
+parser.add_argument("--planner-source", type=Path)
+parser.add_argument("--planner-role", choices=("original", "corrected"))
+parser.add_argument("--runtime-receipt", type=Path)
 parser.add_argument("--phase", choices=("development", "fresh"), default="development")
+parser.add_argument("--record-decisions", action="store_true")
 AppLauncher.add_app_launcher_args(parser)
 args = parser.parse_args()
 if args.steps < 1 or len(set(args.seeds)) != len(args.seeds):
@@ -54,6 +61,21 @@ from src.rover_forecast import load_forecast
 from src.evaluation_terrain import heldout_meshes
 from rover_envs.assets.terrains.terrain_registry import register_terrain_from_folder
 from rover_envs.assets.terrains.generator.terrain_generator import save_to_usd
+
+
+def select_planner(source, plan, role):
+    if source is None:
+        if role is not None:
+            raise ValueError("A planner role requires an explicit planner source")
+        return plan_action
+    if plan is None or role not in plan.get("planners", {}):
+        raise ValueError("An explicit planner source requires its frozen planner role")
+    if hashlib.sha256(source.read_bytes()).hexdigest() != plan["planners"][role]["sha256"]:
+        raise ValueError("Frozen planner source changed")
+    spec = importlib.util.spec_from_file_location("selected_rover_planner", source)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.plan_action
 
 
 class NavigationSnapshot(RecorderTerm):
@@ -84,18 +106,22 @@ class NavigationRecorderCfg(RecorderManagerBaseCfg):
     telemetry = RecorderTermCfg(class_type=NavigationSnapshot)
 
 
-def audit_forecast_action(forecast, model, state, scan, align_heading, hold_reached_goal):
+def audit_forecast_action(forecast, model, state, scan, align_heading, hold_reached_goal, previous_waypoint=None):
     mode, calls, candidates = forecast.mode, forecast.scoring_calls, forecast.scored_candidates
     try:
         forecast.mode = "transport" if mode == "jepa" else "jepa"
         return plan_action(model, state, align_heading=align_heading, height_scan=scan,
-                           terrain_cost=forecast.costs, hold_reached_goal=hold_reached_goal)
+                           terrain_cost=forecast.costs, hold_reached_goal=hold_reached_goal,
+                           **({"previous_waypoint": previous_waypoint} if "previous_waypoint" in inspect.signature(plan_action).parameters else {}))
     finally:
         forecast.mode, forecast.scoring_calls, forecast.scored_candidates = mode, calls, candidates
 
 
 def run_trial(env, model, seed, controller, output, forecast=None, audit_forecasts=False):
+    supports_diagnostics = "diagnostics" in inspect.signature(plan_action).parameters
+    supports_previous_waypoint = "previous_waypoint" in inspect.signature(plan_action).parameters
     env.reset(seed=seed)
+    world_waypoint = None
     use_forecast = controller in ("jepa", "transport")
     hold_reached_goal = controller != "forward" and (controller == "model-hold" or not args.replay_plan)
     if use_forecast:
@@ -106,7 +132,7 @@ def run_trial(env, model, seed, controller, output, forecast=None, audit_forecas
         if bool((terminated | truncated)[0]):
             raise RuntimeError("A settling step terminated the episode before control")
     initial = env.unwrapped.navigation_sample
-    if audit_forecasts:
+    if audit_forecasts or args.planner_role:
         robot = env.unwrapped.scene["robot"]
         initial = {**initial, "root_velocity": robot.data.root_link_vel_w.torch[0].detach().cpu().tolist(),
                    "joint_position": robot.data.joint_pos.torch[0].detach().cpu().tolist(),
@@ -124,7 +150,15 @@ def run_trial(env, model, seed, controller, output, forecast=None, audit_forecas
     goal_hold_steps = 0
     comparison_steps = command_disagreements = 0
     result_path = output / f"seed-{seed}-{controller}"
-    with result_path.with_suffix(".csv").open("w") as handle:
+    with ExitStack() as recording, result_path.with_suffix(".csv").open("w") as handle:
+        decisions = recording.enter_context(h5py.File(str(result_path) + "-decisions.h5", "x")) if args.record_decisions else None
+        if decisions is not None:
+            decisions.attrs.update(schema="rover-plan-decisions-v1", steps_written=0, complete=False,
+                                   csv_step_offset=1, policy_fields="previous_speed,previous_turn,distance*0.11,bearing/pi,heading/pi,height_scan")
+            for name, shape in (("policy", (args.steps, obs["policy"].shape[1])), ("position_w", (args.steps, 3)),
+                                ("yaw_rad", (args.steps,)), ("command", (args.steps, 2))):
+                decisions.create_dataset(name, shape, dtype="f4", compression="lzf")
+            decisions.create_dataset("diagnostics", (args.steps,), dtype=h5py.string_dtype())
         writer = csv.writer(handle)
         writer.writerow(["step", "time_s", "x_m", "y_m", "z_m", "yaw_rad", "goal_x_m", "goal_y_m",
                          "distance_m", "heading_error_rad", "speed_command", "turn_command", "native_success", "collision", "planning_s", "forecast_ready", "goal_hold",
@@ -134,7 +168,6 @@ def run_trial(env, model, seed, controller, output, forecast=None, audit_forecas
             distance = float(state[0, 2]) / 0.11
             heading = abs(float(state[0, 4])) * torch.pi
             holding = hold_reached_goal and distance < 0.18 and heading < 0.1
-            goal_hold_steps += int(holding)
             if distance < 0.16:
                 align_heading = True
             if distance > 0.25 or (distance > 0.18 and heading < 0.08):
@@ -146,30 +179,63 @@ def run_trial(env, model, seed, controller, output, forecast=None, audit_forecas
             ready = use_forecast and forecast.ready
             ready_steps += int(ready)
             calls_before = forecast.scoring_calls if use_forecast else 0
+            pre = samples[-1]
+            c, s = np.cos(pre["yaw"]), np.sin(pre["yaw"])
+            previous_waypoint = None
+            if world_waypoint is not None:
+                dx, dy = np.asarray(world_waypoint) - pre["position"][:2]
+                previous_waypoint = state.new_tensor([c * dx + s * dy, -s * dx + c * dy])
+            diagnostics = {} if decisions is not None or supports_previous_waypoint else None
             if controller == "forward":
                 action = torch.tensor([[0.65, 0.0]])
+                if diagnostics is not None:
+                    diagnostics.update(reason="scripted_forward", waypoint_m=None, forecast_applied=False)
             else:
                 action = plan_action(model, state, align_heading=align_heading,
                                      height_scan=scan if controller in ("model", "model-hold", "jepa", "transport") else None,
                                      terrain_cost=forecast.costs if ready else None,
-                                     hold_reached_goal=hold_reached_goal)
+                                     hold_reached_goal=hold_reached_goal,
+                                     **({"diagnostics": diagnostics} if supports_diagnostics else {}),
+                                     **({"previous_waypoint": previous_waypoint} if supports_previous_waypoint else {}))
+                if diagnostics is not None and not supports_diagnostics:
+                    diagnostics.update(reason="legacy_planner", waypoint_m=None, forecast_applied=bool(use_forecast and forecast.scoring_calls > calls_before))
+            stopped = int(bool((action == 0).all()))
+            world_waypoint = None
+            if diagnostics is not None:
+                waypoint = diagnostics.get("waypoint_m")
+                diagnostics["world_waypoint_m"] = None
+                if waypoint is not None:
+                    x, y = waypoint
+                    diagnostics["world_waypoint_m"] = [pre["position"][0] + c * x - s * y,
+                                                       pre["position"][1] + s * x + c * y]
+                    if not stopped and diagnostics.get("reason") == "selected" and diagnostics.get("mode") == "waypoint":
+                        world_waypoint = diagnostics["world_waypoint_m"]
             if use_forecast and forecast.device.type == "cuda":
                 torch.cuda.synchronize(forecast.device)
             planning_seconds = time.perf_counter() - start_planning
             planning_times.append(planning_seconds)
             alternate = None
             if audit_forecasts and use_forecast and forecast.scoring_calls > calls_before:
-                alternate = audit_forecast_action(forecast, model, state, scan, align_heading, hold_reached_goal)
+                alternate = audit_forecast_action(forecast, model, state, scan, align_heading, hold_reached_goal,
+                                                  previous_waypoint=previous_waypoint)
                 if forecast.device.type == "cuda":
                     torch.cuda.synchronize(forecast.device)
                 comparison_steps += 1
                 command_disagreements += int(not torch.equal(action, alternate))
-            stopped = int(bool((action == 0).all()))
+            holding = holding and bool(stopped)
+            goal_hold_steps += int(holding)
             stopped_steps += stopped
             consecutive_stops = consecutive_stops + 1 if stopped else 0
             longest_stop = max(longest_stop, consecutive_stops)
             if not torch.isfinite(action).all() or action[:, 0].abs().max() > 0.7 or action[:, 1].abs().max() > 0.35:
                 raise RuntimeError("Controller produced an invalid action")
+            if decisions is not None:
+                decisions["policy"][step] = obs["policy"][0].detach().cpu().numpy()
+                decisions["position_w"][step] = pre["position"]
+                decisions["yaw_rad"][step] = pre["yaw"]
+                decisions["command"][step] = action[0].numpy()
+                decisions["diagnostics"][step] = json.dumps(diagnostics, allow_nan=False)
+                decisions.attrs["steps_written"] = step + 1
             obs, reward, terminated, truncated, _ = env.step(action.to(device))
             previous_action = action[0].detach().clone()
             sample = env.unwrapped.navigation_sample
@@ -188,6 +254,8 @@ def run_trial(env, model, seed, controller, output, forecast=None, audit_forecas
                 print(f"seed={seed} controller={controller} step={step + 1} distance={sample['distance_m']:.3f}m heading={sample['heading_error_rad']:.3f}rad", flush=True)
             if bool((terminated | truncated)[0]):
                 break
+        if decisions is not None:
+            decisions.attrs["complete"] = True
     final = samples[-1]
     np.savez_compressed(str(result_path) + "-scan.npz", initial=initial_scan, last=scan.numpy())
     success = final["termination"]["is_success"]
@@ -219,6 +287,7 @@ def run_trial(env, model, seed, controller, output, forecast=None, audit_forecas
 
 
 def main():
+    global plan_action
     torch.set_num_threads(1)
     checkpoint = torch.load(args.checkpoint, map_location="cpu", weights_only=True)
     if checkpoint.get("schema") != "goal-motion-v1" or not checkpoint.get("use_actions"):
@@ -228,21 +297,26 @@ def main():
     model.eval()
     plan_path = args.replay_plan or args.test_plan
     plan = json.loads(plan_path.read_text()) if plan_path else None
+    plan_action = select_planner(args.planner_source, plan, args.planner_role)
+    comparison = bool(plan and plan.get("schema") == "rover-controller-validation-v1")
+    if comparison and (not args.planner_source or not args.runtime_receipt):
+        raise ValueError("Controller validation requires an explicit planner and runtime receipt")
     forecast = None
     if plan is not None:
-        if args.replay_plan and (args.phase != "development" or plan["controllers"] != ["model", "model-hold"]):
+        if args.replay_plan and not comparison and (args.phase != "development" or plan["controllers"] != ["model", "model-hold"]):
             raise ValueError("Goal-hold replay requires the two development controllers")
         if ({"terrain": args.terrain, "seeds": args.seeds} not in plan[args.phase]
                 or args.steps != plan["steps"] or (not args.replay_plan and plan["forecast_weight"] != 0.25)):
             raise ValueError("Trial cases differ from the frozen test plan")
-        for name, source in (("motion_checkpoint", args.checkpoint), ("planner_source", Path(plan_action.__wrapped__.__code__.co_filename)),
+        for name, source in (("motion_checkpoint", args.checkpoint), ("planner_source", args.planner_source or Path(inspect.unwrap(plan_action).__code__.co_filename)),
                              ("runner_source", Path(__file__)), ("forecast_source", Path(load_forecast.__code__.co_filename)),
                              ("terrain_source", Path(heldout_meshes.__code__.co_filename)),
                              ("motion_source", Path(model_for.__code__.co_filename))):
-            if hashlib.sha256(source.read_bytes()).hexdigest() != plan["sha256"][name]:
+            expected = plan["planners"][args.planner_role]["sha256"] if name == "planner_source" and args.planner_role else plan["sha256"][name]
+            if hashlib.sha256(source.read_bytes()).hexdigest() != expected:
                 raise ValueError(f"Frozen navigation input changed: {name}")
         if not args.replay_plan:
-            if plan["controllers"] not in (["model", "transport", "jepa"], ["transport", "jepa"]):
+            if plan["controllers"] not in (["model", "transport", "jepa"], ["transport", "jepa"]) and not (comparison and plan["controllers"] in (["transport"], ["jepa"])):
                 raise ValueError("Forecast plans require the paired transport and JEPA controls")
             forecast = load_forecast(args.jepa_run, args.terrain_checkpoint, args.encoder_source,
                                      args.predictor_source, plan, args.device)
@@ -251,17 +325,19 @@ def main():
     source_dir = output / "source"
     source_dir.mkdir()
     source_hashes = {}
-    for source in (__file__, inspect.unwrap(plan_action).__code__.co_filename, model_for.__code__.co_filename,
+    for source in (__file__, str(args.planner_source) if args.planner_source else inspect.unwrap(plan_action).__code__.co_filename, model_for.__code__.co_filename,
                    load_forecast.__code__.co_filename, heldout_meshes.__code__.co_filename):
         source = Path(source)
         source_hashes[source.name] = hashlib.sha256(source.read_bytes()).hexdigest()
         shutil.copyfile(source, source_dir / source.name)
+    if args.runtime_receipt:
+        shutil.copyfile(args.runtime_receipt, output / "runtime.json")
     cfg = parse_env_cfg(args.task, device=args.device, num_envs=1)
     cfg.seed = args.seeds[0]
     if args.terrain.startswith("test-rocks-"):
         layout_seed = int(args.terrain.removeprefix("test-rocks-"))
-        if plan is None or (args.phase != "fresh" and not args.replay_plan):
-            raise ValueError("Held-out layouts require the frozen fresh test plan")
+        if plan is None:
+            raise ValueError("Rock layouts require a frozen test plan")
         layout = output / "terrain"
         layout.mkdir()
         ground, faces, rocks, rock_faces = heldout_meshes(layout_seed)
@@ -286,6 +362,10 @@ def main():
                                    plan.get("counterbalance_order") and seed % 2 else plan["controllers"]
                                    for seed in args.seeds} if plan else None,
               "development_replay": bool(args.replay_plan),
+              "planner_role": args.planner_role,
+              "planner_source_sha256": hashlib.sha256((args.planner_source or Path(inspect.unwrap(plan_action).__code__.co_filename)).read_bytes()).hexdigest(),
+              "runtime_sha256": hashlib.sha256(args.runtime_receipt.read_bytes()).hexdigest() if args.runtime_receipt else None,
+              "record_decisions": args.record_decisions,
               "frozen_test_plan": plan, "phase": args.phase,
               "forecast_scoring": {"weight": 0.25, "max_seconds": 5, "patches": "central 2x2 maximum", "alignment": "scan only"},
               "source_sha256": source_hashes,
@@ -334,7 +414,7 @@ def main():
             "mean_path_length_m": float(np.mean([result["path_length_m"] for result in trials])),
             "mean_planning_s": float(np.mean([result["planning_mean_s"] for result in trials])),
         }
-    if forecast is None and not args.replay_plan:
+    if forecast is None and not args.replay_plan and not comparison:
         learned, forward = summary["controllers"]["model"], summary["controllers"]["forward"]
         summary["meaningful_result"] = (learned["verified_successes"] > 0 and
                                          learned["mean_progress_m"] > forward["mean_progress_m"])
@@ -343,7 +423,7 @@ def main():
         summary["evaluation_completed"] = True
     (output / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
     print(json.dumps(summary, indent=2), flush=True)
-    if forecast is None and not args.replay_plan and not summary["meaningful_result"]:
+    if forecast is None and not args.replay_plan and not comparison and not summary["meaningful_result"]:
         raise RuntimeError("Learned planning did not reach a verified goal and beat forward progress")
     (output / "SUCCESS").touch()
 
