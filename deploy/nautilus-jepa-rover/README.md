@@ -56,7 +56,7 @@ RLRoverLab with scripted forward, reverse, turns, and stops. It records data;
 it does not train an RL policy. Every file has a completion marker. The split
 preparer accepts only completed training files and snapshots their paths.
 Seeds 20 and 21 stay reserved under the
-[test plan](../../docs/results/rover-jepa/test-plan.json).
+test plan saved with the run artifacts outside Git.
 
 The reused episode loader checks finite values, timing, reset boundaries, and
 stale terminal fields. Forecast windows cannot cross resets or recordings.
@@ -90,19 +90,9 @@ across the full split. `FINISHED` means execution completed. Only
 `QUALITY_PASSED` means the complete target passed. Never weaken these gates to
 make a run pass.
 
-Run v11 stopped after 17 epochs and selected epoch 16. It passed every check
-except the one-second validation gain over transport: 1.83%, below 2%.
-It improved over copying by 10.41% at one second and 21.83% at five seconds on
-validation. The five-second development-test gain over transport was 5.22%.
-Run v12 repeated this source and data. It passed every development check at
-epoch 23 and stopped. GPU numerical differences changed the training path;
-this is evidence of a narrow margin, not a large robust improvement. The
-reserved final evaluation used its frozen checkpoint and passed the planned
-pooled target. Final feature gains over copying were 10.80% at one second and
-19.88% at five seconds. Gains over transport were 2.37% and 5.65%. Mars alone
-narrowly missed the one-second copy target at 9.85%; debug passed. See the
-[final report](../../docs/results/rover-jepa/final-metrics.json) and
-[results](../../docs/results.md). All workloads have completed.
+Final offline findings are consolidated in [results](../../docs/results.md#rover-jepa-prediction).
+Keep development attempts, metrics, and histories with the run artifacts
+outside Git.
 
 ## Saved evidence and final evaluation
 

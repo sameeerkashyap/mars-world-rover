@@ -13,3 +13,17 @@ __pycache__/
 .tokensave/
 .env
 results/
+
+/notes/*
+!/notes/setup.md
+!/notes/upstream.json
+/docs/results/
+/docs/terrain-cost-metrics.json
+/experiments/
+/pilots/
+/artifacts/
+*.log
+*.jsonl
+*.pt
+*.pth
+*.ckpt
