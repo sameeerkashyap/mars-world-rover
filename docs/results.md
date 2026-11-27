@@ -108,3 +108,24 @@ Only consolidated final findings and publication figures belong in this
 document and `docs/assets/`. Source code, reusable tests and their fixtures,
 and reproducible input configurations remain versioned. Run outputs and
 development reports remain outside Git.
+
+## Frozen forecast navigation comparison
+
+A completed paired evaluation compared the frozen JEPA forecast with its
+matching motion-only transport on 20 new synthetic rock layouts. Both arms
+used the same motion model, terrain readout, native goal rules, and measured
+scan rejection. No model was retrained and no cases were replaced.
+
+| Controller | Goals reached | Collisions | Mean planning time |
+| :--- | ---: | ---: | ---: |
+| Transport | 16/20 | 0/20 | 108.40 ms |
+| JEPA | 15/20 | 0/20 | 130.13 ms |
+
+There were no JEPA-only successes and one transport-only success. The exact
+paired p-value was 1.0. The registered promotion rule failed. The evaluation
+does not establish a JEPA navigation advantage. It covers one synthetic
+terrain family, not natural terrain or new friction conditions.
+
+The [comparison guide](../deploy/nautilus-jepa-confirmation/README.md)
+describes the frozen cases, endpoint, and verification procedure. Full traces
+and analysis reports remain under `/data/runs/rover-jepa-confirmation/`.
